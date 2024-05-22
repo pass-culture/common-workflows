@@ -31,20 +31,10 @@ inputs:
     description: "Path where repository will be cloned. Helmfile.yaml must reference this path"
     type: string
     required: true
-  GCP_EHP_WORKLOAD_IDENTITY_PROVIDER:
-    required: true
-  GCP_EHP_SERVICE_ACCOUNT:
-    required: true
 
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v4.1.6
-    - name: "Authentification to Google"
-      uses: 'google-github-actions/auth@v2'
-      with:
-        workload_identity_provider: ${{ inputs.GCP_EHP_WORKLOAD_IDENTITY_PROVIDER }}
-        service_account: ${{ inputs.GCP_EHP_SERVICE_ACCOUNT }}
     - name: "Get secrets (artifact registry, github)"
       id: 'get-secrets'
       uses: 'google-github-actions/get-secretmanager-secrets@v2'
