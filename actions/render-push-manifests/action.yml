@@ -84,5 +84,5 @@ runs:
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : pushed rendered manifests for app_version=${{ inputs.app_version }}"
-        target-branch: ${{ inputs.environment }}
+        target-branch: "${{ inputs.app_name }}/${{ inputs.environment }}"
         create-target-branch-if-needed: true
