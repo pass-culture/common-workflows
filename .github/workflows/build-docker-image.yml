@@ -40,7 +40,7 @@ jobs:
 
       - name: Output variables
         id: vars
-        run: echo "DOCKER_REPO=${DOCKER_REGISTRY_REGION}-docker.pkg.dev/${DOCKER_REGISTRY_PROJECT_ID}/${DOCKER_REGISTRY_REPOSITORY}" >> ${GITHUB_ENV}
+        run: echo "DOCKER_REPO=${DOCKER_REGISTRY_REGION}-docker.pkg.dev/${DOCKER_REGISTRY_PROJECT_ID}/${DOCKER_REGISTRY_REPOSITORY}" | tee -a ${GITHUB_ENV}
 
       - id: openid-auth
         name: "OpenID Connect Authentication"
