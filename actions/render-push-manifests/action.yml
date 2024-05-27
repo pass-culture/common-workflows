@@ -53,6 +53,7 @@ runs:
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
     - uses: actions/checkout@v4.1.5
       with:
+        ref: dimitri/backoffice-iap
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
         path: ${{ inputs.chart_values_destination }}
