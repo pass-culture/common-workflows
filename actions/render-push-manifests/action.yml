@@ -24,17 +24,22 @@ inputs:
     type: string
     required: true
   chart_values_repository:
-    description: "Repository containing helm chart values"
+    description: "Repository containing helm chart values. Optional if called from inside values repository"
     type: string
-    required: true
+    required: false
   chart_values_repository_ref:
     description: "Repository ref containing helm chart values"
     type: string
     required: false    
   chart_values_destination:
-    description: "Path where repository will be cloned. Helmfile.yaml must reference this path"
+    description: "Path where repository will be locally cloned. Not needed if chart_values_repository is false."
     type: string
-    required: true
+    required: false
+  helmfile_path:
+    description: "Location of helmfile.yaml inside repository"
+    type: string
+    required: false
+    default: "."
 
 runs:
   using: 'composite'
@@ -56,6 +61,7 @@ runs:
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
     - uses: actions/checkout@v4.1.5
+      if: inputs.chart_values_repository == true
       with:
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
@@ -67,7 +73,7 @@ runs:
     - name: "Render manifests"
       shell: bash
       run: |
-        helmfile_template=(helmfile -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template "{{ .OutputDir }}/{{ .State.BaseName }}-{{ .Release.Name  }}") 
+        helmfile_template=(${{ inputs.helmfile_path }}/helmfile -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template "{{ .OutputDir }}/{{ .State.BaseName }}-{{ .Release.Name  }}") 
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
