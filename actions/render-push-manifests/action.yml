@@ -65,7 +65,6 @@ runs:
       with:
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
-        path: ${{ inputs.chart_values_destination }}
     - name: "Setup helmfile"
       uses: mamezou-tech/setup-helmfile@v1.3.0
       with:
@@ -97,6 +96,6 @@ runs:
         source-directory: ${{ inputs.helmfile_path }}/rendered-manifests/helmfile-${{ inputs.environment }}/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
-        commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : pushed rendered manifests for app_version=${{ inputs.app_version }}"
+        commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
         target-branch: fdehem
         create-target-branch-if-needed: true
