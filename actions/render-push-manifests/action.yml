@@ -37,6 +37,10 @@ inputs:
     type: string
     required: false
     default: "."
+  rendered_manifests_target_branch:
+    description: "Target branch for rendered-manifests. Mainly used for testing purposes, Use with caution."
+    type: string
+    required: false
 
 runs:
   using: 'composite'
@@ -95,5 +99,5 @@ runs:
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
-        target-branch: fdehem
+        target-branch: ${{ inputs.rendered_manifests_target_branch > '' && fdehem || inputs.rendered_manifests_target_branch }}
         create-target-branch-if-needed: true
