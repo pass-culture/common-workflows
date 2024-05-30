@@ -40,6 +40,10 @@ inputs:
     type: string
     required: false
     default: "."
+  local_rendered_path:
+    type: string
+    required: false
+    default: ""
 
 runs:
   using: 'composite'
@@ -94,7 +98,7 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ./rendered-manifests/helmfile-${{ inputs.environment }}/
+        source-directory: ./${{ inputs.local_rendered_path }}/rendered-manifests/helmfile-${{ inputs.environment }}/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : pushed rendered manifests for app_version=${{ inputs.app_version }}"
