@@ -63,7 +63,7 @@ runs:
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
     - uses: actions/checkout@v4.1.5
-      if: inputs.chart_values_repository == true
+      if: inputs.chart_values_repository != ''
       with:
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
