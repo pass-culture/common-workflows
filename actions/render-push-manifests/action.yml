@@ -63,7 +63,7 @@ runs:
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
     - uses: actions/checkout@v4.1.5
-      if: inputs.chart_values_repository == true
+      if: inputs.chart_values_repository != ''
       with:
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
@@ -75,7 +75,7 @@ runs:
     - name: "Render manifests"
       shell: bash
       run: |
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template "{{ .OutputDir }}/{{ .State.BaseName }}-{{ .Release.Name  }}") 
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template "{{ .OutputDir }}") 
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
@@ -90,15 +90,27 @@ runs:
         ADDITIONAL_ARGS: ${{ inputs.additional_args }}
         PASSCULTURE_USERNAME: "oauth2accesstoken"
         PASSCULTURE_PASSWORD: ${{ steps.connect-registry.outputs.access_token }}
+
+    - name: 'Set destination branch'
+      shell: bash
+      id: 'compute-branch-name'
+      run: |
+        if [ -z "${{ inputs.rendered_manifests_target_branch }}" ]; then
+          echo "destination_branch=${{ inputs.app_name }}/${{ inputs.environment }}" | tee -a ${GITHUB_OUTPUT}
+        else
+          echo "destination_branch=${{ inputs.rendered_manifests_target_branch }}" | tee -a ${GITHUB_OUTPUT}
+        fi
+
+
     - name: "Push manifests to rendered-manifests repository"
       id: push-manifests
       uses: cpina/github-action-push-to-another-repository@main
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ${{ inputs.helmfile_path }}/rendered-manifests/helmfile-${{ inputs.environment }}/
+        source-directory: ${{ inputs.helmfile_path }}/rendered-manifests/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
-        target-branch: ${{ inputs.rendered_manifests_target_branch == '' && inputs.environment || inputs.rendered_manifests_target_branch }}
+        target-branch: "${{ steps.compute-branch-name.outputs.destination_branch }}"
         create-target-branch-if-needed: true
