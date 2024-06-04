@@ -90,6 +90,18 @@ runs:
         ADDITIONAL_ARGS: ${{ inputs.additional_args }}
         PASSCULTURE_USERNAME: "oauth2accesstoken"
         PASSCULTURE_PASSWORD: ${{ steps.connect-registry.outputs.access_token }}
+
+    - name: 'Set destination branch'
+      shell: bash
+      id: 'compute-branch-name'
+      run: |
+        if [ -z "${{ inputs.rendered_manifests_target_branch }}" ]; then
+          echo "destination_branch=${{ inputs.app_name }}/${{ inputs.environment }}" | tee -a ${GITHUB_OUTPUT}
+        else
+          echo "destination_branch=${{ inputs.rendered_manifests_target_branch }}" | tee -a ${GITHUB_OUTPUT}
+        fi
+
+
     - name: "Push manifests to rendered-manifests repository"
       id: push-manifests
       uses: cpina/github-action-push-to-another-repository@main
@@ -100,5 +112,5 @@ runs:
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
-        target-branch: ${{ inputs.rendered_manifests_target_branch == '' && inputs.environment || inputs.rendered_manifests_target_branch }}
+        target-branch: "${{ steps.compute-branch-name.outputs.destination_branch }}"
         create-target-branch-if-needed: true
