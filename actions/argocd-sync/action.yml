@@ -1,0 +1,59 @@
+name: 'Sync argocd application'
+description: 'This composite action connects will sync current application in ArgoCD and wait for sync to be ok'
+inputs:
+  app_name:
+    type: string
+    description: The application to sync on ArgoCD
+    required: true
+  teleport_proxy:
+    type: string
+    description: The teleport proxy to connect to
+    required: true
+  teleport_kubernetes_cluster:
+    type: string
+    description: The kubernetes cluster to connect to
+    required: true
+  teleport_version:
+    type: string
+    description: The kubernetes cluster to connect to
+    required: false
+    default: 15.2.5
+  sync_timeout:
+    description: The timeout to wait for before aborting the sync
+    required: false
+    default: 600
+
+
+runs:
+  using: 'composite'
+  steps:
+    - name: "Install Teleport"
+      uses: teleport-actions/setup@v1
+      with:
+        version: ${{ inputs.teleport_version }}
+
+    - name: "Teleport Authentication"
+      uses: teleport-actions/auth-k8s@v1
+      id: "teleport-auth"
+      with:
+        proxy: ${{ inputs.teleport_proxy }}
+        token: github-token
+        certificate-ttl: 1h
+        kubernetes-cluster: ${{ inputs.teleport_kubernetes_cluster }}
+
+    - name: "Install argocd cli"
+      id: install_argocd_cli
+      shell: bash
+      run: |
+        curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+        rm argocd-linux-amd64
+
+    - name: "Check argocd application status"
+      id: check_status
+      shell: bash
+      run: |
+        kubectl config set-context --current --namespace=argocd
+        argocd app sync ${{ inputs.app_name }} --core --async
+        argocd app wait ${{ inputs.app_name }} --core --timeout ${{ inputs.sync_timeout }} 
+
