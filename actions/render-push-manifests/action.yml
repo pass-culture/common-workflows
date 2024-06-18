@@ -38,10 +38,15 @@ inputs:
     required: false
     default: "."
   rendered_manifests_target_branch:
-    description: "Target branch for rendered-manifests. Mainly used for testing purposes, Use with caution."
+    description: "Target branch for rendered-manifests. Mainly used for pullrequests and testing purposes, Use with caution."
     type: string
     required: false
     default: ''
+  is_pull_request:
+    description: "Boolean wether it is from a pullrequest or not"
+    type: boolean
+    required: false
+    default: false
 
 runs:
   using: 'composite'
@@ -54,6 +59,7 @@ runs:
           ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER:${{ inputs.registry_workload_identity_secret_name }}
           ARTIFACT_REGISTRY_SERVICE_ACCOUNT:${{ inputs.registry_service_account_secret_name }}
           API_TOKEN_GITHUB:${{ inputs.api_token_github_secret_name }}
+
     - name: "Connect to docker registry"
       id: "connect-registry"
       uses: 'google-github-actions/auth@v2'
@@ -62,16 +68,19 @@ runs:
         token_format: 'access_token'
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
+
     - uses: actions/checkout@v4.1.5
       if: inputs.chart_values_repository != ''
       with:
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
         ref: ${{ inputs.chart_values_repository_ref }}
+
     - name: "Setup helmfile"
       uses: mamezou-tech/setup-helmfile@v1.3.0
       with:
         helmfile-version: "v0.147.0"
+
     - name: "Render manifests"
       shell: bash
       run: |
@@ -83,6 +92,10 @@ runs:
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
         "${helmfile_template[@]}"
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          mkdir ./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+          mv ./rendered-manifests/pcapi/templates/* ./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+        fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         APP_NAME: ${{ inputs.app_name }}
@@ -100,7 +113,6 @@ runs:
         else
           echo "destination_branch=${{ inputs.rendered_manifests_target_branch }}" | tee -a ${GITHUB_OUTPUT}
         fi
-
 
     - name: "Push manifests to rendered-manifests repository"
       id: push-manifests
