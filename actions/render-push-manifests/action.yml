@@ -99,6 +99,7 @@ runs:
           echo "----"
           ls ${{ github.workspace }}/rendered-manifests/pcapi
           mv ${{ github.workspace }}/rendered-manifests/pcapi/templates ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+          git add ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
