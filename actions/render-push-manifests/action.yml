@@ -85,15 +85,19 @@ runs:
       shell: bash
       run: |
         helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ runner.temp }}/rendered-manifests/
-        if [ "${ADDITIONAL_ARGS}" ]; then
+        if [ "${ADDITIONAL_ARGS}" ]
+        then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
         if [ "${APP_VERSION}" ]; then
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
         "${helmfile_template[@]}"
-        if [ ${{ inputs.is_pull_request }} == true ]; then
+        if [ ${{ inputs.is_pull_request }} = true ]; then
           mkdir -p ${{ runner.temp }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+          echo "----"
+          ls ${{ runner.temp }}/rendered-manifests
+          echo "----"
           ls ${{ runner.temp }}/rendered-manifests/pcapi
           mv ${{ runner.temp }}/rendered-manifests/pcapi/templates ${{ runner.temp }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
         fi
