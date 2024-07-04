@@ -84,7 +84,13 @@ runs:
     - name: "Render manifests"
       shell: bash
       run: |
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "{{ .OutputDir }}")
+        output_dir_tpl=""
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          output_dir_tpl="pcapi/pullrequests/pr-${{ github.event.pull_request.number }}"
+        else
+          output_dir_tpl="{{ .OutputDir }}"
+        fi
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template $output_dir_tpl)
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
@@ -92,15 +98,6 @@ runs:
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
         "${helmfile_template[@]}"
-        if [ ${{ inputs.is_pull_request }} = true ]; then
-          mkdir -p ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
-          echo "----"
-          ls ${{ github.workspace }}/rendered-manifests
-          echo "----"
-          ls ${{ github.workspace }}/rendered-manifests/pcapi
-          mv ${{ github.workspace }}/rendered-manifests/pcapi/templates ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
-          git add ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
-        fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         APP_NAME: ${{ inputs.app_name }}
@@ -125,7 +122,7 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ${{ github.workspace }}/rendered-manifests/
+        source-directory: ./rendered-manifests/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
