@@ -94,7 +94,7 @@ runs:
         "${helmfile_template[@]}"
         if [ ${{ inputs.is_pull_request }} = true ]; then
           mkdir -p ./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
-          mv ./rendered-manifests/pcapi/templates/* ./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+          mv ./rendered-manifests/pcapi/templates ./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
