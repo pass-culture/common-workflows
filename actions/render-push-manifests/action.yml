@@ -84,9 +84,8 @@ runs:
     - name: "Render manifests"
       shell: bash
       run: |
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ runner.temp }}/rendered-manifests/
-        if [ "${ADDITIONAL_ARGS}" ]
-        then
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ runner.temp }}/rendered-manifests/)
+        if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
         if [ "${APP_VERSION}" ]; then
