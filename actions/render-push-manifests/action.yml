@@ -86,7 +86,7 @@ runs:
       run: |
         output_dir_tpl=""
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          output_dir_tpl="pcapi/pullrequests/pr-${{ github.event.pull_request.number }}"
+          output_dir_tpl="./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}"
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
