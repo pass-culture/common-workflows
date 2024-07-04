@@ -84,7 +84,7 @@ runs:
     - name: "Render manifests"
       shell: bash
       run: |
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ runner.temp }}/rendered-manifests/ --output-dir-template "{{ .OutputDir }}")
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "{{ .OutputDir }}")
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
@@ -93,12 +93,12 @@ runs:
         fi
         "${helmfile_template[@]}"
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          mkdir -p ${{ runner.temp }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+          mkdir -p ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
           echo "----"
-          ls ${{ runner.temp }}/rendered-manifests
+          ls ${{ github.workspace }}/rendered-manifests
           echo "----"
-          ls ${{ runner.temp }}/rendered-manifests/pcapi
-          mv ${{ runner.temp }}/rendered-manifests/pcapi/templates ${{ runner.temp }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
+          ls ${{ github.workspace }}/rendered-manifests/pcapi
+          mv ${{ github.workspace }}/rendered-manifests/pcapi/templates ${{ github.workspace }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
@@ -124,7 +124,7 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ${{ runner.temp }}/rendered-manifests/
+        source-directory: ${{ github.workspace }}/rendered-manifests/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
