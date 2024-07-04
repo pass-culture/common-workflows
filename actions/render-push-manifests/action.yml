@@ -92,7 +92,7 @@ runs:
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
         "${helmfile_template[@]}"
-        if [ ${{ inputs.is_pull_request }} = true ]; then
+        if [ ${{ inputs.is_pull_request }} == true ]; then
           mkdir -p ${{ runner.temp }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
           ls ${{ runner.temp }}/rendered-manifests/pcapi
           mv ${{ runner.temp }}/rendered-manifests/pcapi/templates ${{ runner.temp }}/rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
