@@ -124,7 +124,7 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ./rendered-manifests/
+        source-directory: ${{ github.workspace }}/rendered-manifests/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
