@@ -97,7 +97,6 @@ runs:
           ls ./
           ls ./rendered-manifests
           ls ./rendered-manifests/pcapi
-          ls ./rendered-manifests/pcapi/templates
           mv ./rendered-manifests/pcapi/templates ./rendered-manifests/pcapi/pullrequests/pr-${{ github.event.pull_request.number }}
         fi
       env:
