@@ -17,6 +17,8 @@ on:
         required: true
       ARTIFACT_REGISTRY_SERVICE_ACCOUNT:
         required: true
+      COSIGN_KMS_KEY:
+        required: true
 
 env:
   DOCKER_REGISTRY_PROJECT_ID: passculture-infra-prod
@@ -41,17 +43,7 @@ jobs:
       - name: Output variables
         id: vars
         run: echo "DOCKER_REPO=${DOCKER_REGISTRY_REGION}-docker.pkg.dev/${DOCKER_REGISTRY_PROJECT_ID}/${DOCKER_REGISTRY_REPOSITORY}" | tee -a ${GITHUB_ENV}
-      - name: Authentification to Google to get secret
-        uses: 'google-github-actions/auth@v2'
-        with:
-          workload_identity_provider: ${{ secrets.GCP_EHP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_EHP_SERVICE_ACCOUNT }}
-      - name: Get Secret
-        id: 'secrets'
-        uses: 'google-github-actions/get-secretmanager-secrets@v2'
-        with:
-          secrets: |-
-            COSIGN_KMS_KEY:passculture-metier-ehp/cosign_kms_key
+
       - id: openid-auth
         name: "OpenID Connect Authentication"
         uses: "google-github-actions/auth@v2"
@@ -90,4 +82,4 @@ jobs:
           tags: ${{ env.DOCKER_REPO }}/${{ inputs.image }}:${{ env.SANITIZED_BRANCH_NAME }},${{ env.DOCKER_REPO }}/${{ inputs.image }}:${{ env.HASH }}
           context: ${{ inputs.context }}
       - name: Sign image with a kms key
-        run: cosign sign --tlog-upload=false --key gcpkms://${{ steps.secrets.outputs.COSIGN_KMS_KEY }} ${{ env.DOCKER_REPO }}/${{ inputs.image }}@${{ steps.docker-push-action.outputs.digest }}
+        run: cosign sign --tlog-upload=false --key gcpkms://${{ secrets.COSIGN_KMS_KEY }} ${{ env.DOCKER_REPO }}/${{ inputs.image }}@${{ steps.docker-push-action.outputs.digest }}
