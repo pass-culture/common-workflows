@@ -100,6 +100,7 @@ runs:
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
         "${helmfile_template[@]}"
+        ls $output_dir_tpl
         mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
       env:
         ENVIRONMENT: ${{ inputs.environment }}
