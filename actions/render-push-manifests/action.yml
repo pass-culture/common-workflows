@@ -92,7 +92,7 @@ runs:
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template $output_dir_tpl)
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template $output_dir_tpl)
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
@@ -126,7 +126,7 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ${{ inputs.helmfile_path }}/rendered-manifests/
+        source-directory: ${{ github.workspace }}/rendered-manifests/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
