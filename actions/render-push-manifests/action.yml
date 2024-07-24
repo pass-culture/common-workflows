@@ -85,6 +85,8 @@ runs:
       shell: bash
       run: |
         output_dir_tpl=""
+        # is pr-id/pcapi/templates
+        # should be pcapi/templates/pr-id
         if [ ${{ inputs.is_pull_request }} = true ]; then
           output_dir_tpl="./rendered-manifests/pr-${{ github.event.pull_request.number }}"
         else
@@ -98,8 +100,7 @@ runs:
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
         "${helmfile_template[@]}"
-        echo "PWD :"
-        pwd
+        mv $ouput_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         APP_NAME: ${{ inputs.app_name }}
