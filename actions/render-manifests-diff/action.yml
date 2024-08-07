@@ -87,6 +87,7 @@ runs:
         scan-type: config
         hide-progress: true
         format: table
+        output: scan_output.txt
         severity: 'CRITICAL,HIGH'
 
 
@@ -112,6 +113,33 @@ runs:
       shell: bash
       id: 'diff'
       run: |
-        diff -r ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests
+        diff -r -u --color ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true 
+  
+    - name: 'Concat outputs'
+      shell: bash
+      run: |
+        echo "### Scan result" >> output.txt
+        echo "<details>" >> output.txt
+        cat scan_output.txt >> output.txt
+        echo "</details>" >> output.txt
+        echo "" >> output.txt
+        echo "### Diff result" >> output.txt
+        echo "<details>" >> output.txt
+        echo "" >> output.txt
+        echo "\`\`\`" >> output.txt
+        echo "" >> output.txt
+        cat diff_output.txt >> output.txt
+        echo "" >> output.txt
+        echo "\`\`\`" >> output.txt
+        echo "" >> output.txt
+        echo "</details>" >> output.txt
+
+    - name: 'Post output to PR'
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        filepath: output.txt
+
+  
+
 
         
