@@ -85,8 +85,6 @@ runs:
       shell: bash
       run: |
         output_dir_tpl=""
-        # is pr-id/pcapi/templates
-        # should be pcapi/templates/pr-id
         if [ ${{ inputs.is_pull_request }} = true ]; then
           output_dir_tpl="${{ github.workspace }}/rendered-manifests/pr-${{ github.event.pull_request.number }}"
         else
@@ -99,9 +97,15 @@ runs:
         if [ "${APP_VERSION}" ]; then
           helmfile_template+=(--set image.tag=$APP_VERSION)
         fi
+        #Pass pr number to helmfile argument
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
+        done
         "${helmfile_template[@]}"
-        ls $output_dir_tpl
-        mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
+        # Get rid of pcapi/templates for pullrequests (for argocd appset path)
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
+        fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         APP_NAME: ${{ inputs.app_name }}
