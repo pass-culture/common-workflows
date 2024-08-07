@@ -100,7 +100,7 @@ runs:
         #Pass pr number to helmfile argument
         if [ ${{ inputs.is_pull_request }} = true ]; then
           helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
-        done
+        fi
         "${helmfile_template[@]}"
         # Get rid of pcapi/templates for pullrequests (for argocd appset path)
         if [ ${{ inputs.is_pull_request }} = true ]; then
