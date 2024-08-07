@@ -42,6 +42,14 @@ inputs:
     type: string
     required: false
     default: ''
+  push_manifests:
+    description: "Push manifests to target_branch"
+    type: boolean
+    default: true
+  scan_manifests:
+    description: "Perform trivy IaC analysis of rendered manifests"
+    type: boolean
+    default: false
 
 runs:
   using: 'composite'
@@ -91,8 +99,20 @@ runs:
         PASSCULTURE_USERNAME: "oauth2accesstoken"
         PASSCULTURE_PASSWORD: ${{ steps.connect-registry.outputs.access_token }}
 
+    - name: "Scan generated manifests"
+      id: push-manifests
+      if: inputs.scan_manifests
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        scan-type: config
+        hide-progress: true
+        format: table
+        severity: 'CRITICAL,HIGH'
+
+
     - name: 'Set destination branch'
       shell: bash
+      if: inputs.push_manifests
       id: 'compute-branch-name'
       run: |
         if [ -z "${{ inputs.rendered_manifests_target_branch }}" ]; then
@@ -101,9 +121,9 @@ runs:
           echo "destination_branch=${{ inputs.rendered_manifests_target_branch }}" | tee -a ${GITHUB_OUTPUT}
         fi
 
-
     - name: "Push manifests to rendered-manifests repository"
       id: push-manifests
+      if: inputs.push_manifests
       uses: cpina/github-action-push-to-another-repository@main
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
