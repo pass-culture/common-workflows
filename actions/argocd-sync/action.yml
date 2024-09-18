@@ -27,6 +27,4 @@ runs:
       shell: bash
       run: |
         kubectl config set-context --current --namespace=argocd
-        argocd app sync ${{ inputs.app_name }} --core --async
-        argocd app wait ${{ inputs.app_name }} --core --timeout ${{ inputs.sync_timeout }} 
-
+        argocd app sync ${{ inputs.app_name }} --core --timeout ${{ inputs.sync_timeout }}
