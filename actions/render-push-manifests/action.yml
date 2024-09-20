@@ -105,7 +105,7 @@ runs:
 
     - name: "Scan generated manifests"
       id: scan-manifests
-      if: inputs.scan_manifests
+      if: ${{ inputs.scan_manifests == 'true' }}
       uses: aquasecurity/trivy-action@0.24.0
       with:
         scan-type: config
@@ -117,7 +117,7 @@ runs:
 
     - name: 'Set destination branch'
       shell: bash
-      if: inputs.push_manifests
+      if: ${{ inputs.push_manifests == 'true' }}
       id: 'compute-branch-name'
       run: |
         if [ -z "${{ inputs.rendered_manifests_target_branch }}" ]; then
@@ -130,7 +130,7 @@ runs:
     # Diff operation
     - name: 'Checkout current rendered-manifests branch'
       uses: actions/checkout@v4
-      if: inputs.diff
+      if: ${{ inputs.diff == 'true' }}
       with:
         repository: pass-culture/rendered-manifests
         path: current-rendered-manifests
@@ -138,14 +138,14 @@ runs:
         ref: "${{ steps.compute-branch-name.outputs.destination_branch }}"
 
     - name: 'Diff'
-      if: inputs.diff
+      if: ${{ inputs.diff == 'true' }}
       shell: bash
       id: 'diff'
       run: |
         diff -r -u ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true 
   
     - name: 'Concat outputs'
-      if: inputs.diff
+      if: ${{ inputs.diff == 'true' }}
       shell: bash
       run: |
         echo "### Scan result" >> output.txt
@@ -165,7 +165,7 @@ runs:
         echo "</details>" >> output.txt
 
     - name: 'Post output to PR'
-      if: inputs.diff
+      if: ${{ inputs.diff == 'true' }}
       uses: thollander/actions-comment-pull-request@v2
       with:
         filepath: output.txt
@@ -174,7 +174,7 @@ runs:
     # Push manifests
     - name: "Push manifests to rendered-manifests repository"
       id: push-manifests
-      if: inputs.push_manifests
+      if: ${{ inputs.push_manifests == 'true' }}
       uses: cpina/github-action-push-to-another-repository@main
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
