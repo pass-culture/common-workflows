@@ -2,18 +2,19 @@ name: 'Teleport connect action'
 description: 'This action connects to a given kubernetes cluster through a given teleport proxy'
 inputs:
   teleport_proxy:
-    type: string
     description: The teleport proxy to connect to
     required: true
   teleport_kubernetes_cluster:
-    type: string
     description: The kubernetes cluster to connect to
     required: true
   teleport_version:
-    type: string
     description: The kubernetes cluster to connect to
     required: false
     default: 15.2.5
+  connection_timeout:
+    description: The amount of time that the authentication is valid for 
+    required: false
+    default: 1h
 
 runs:
   using: 'composite'
@@ -29,5 +30,5 @@ runs:
       with:
         proxy: ${{ inputs.teleport_proxy }}
         token: github-token
-        certificate-ttl: 1h
+        certificate-ttl: ${{ inputs.connection_timeout }}
         kubernetes-cluster: ${{ inputs.teleport_kubernetes_cluster }}
