@@ -9,7 +9,18 @@ inputs:
     description: The timeout to wait for before aborting the sync
     required: false
     default: 600
-
+  retry_backoff_duration:
+    description: Retry backoff base duration.
+    required: false
+    default: '5s'
+  retry_backoff_factor:
+    description: Factor multiplies the base duration after each failed retry
+    required: false
+    default: 1
+  retry_backoff_max_duration:
+    description: Max retry backoff duration.
+    required: false
+    default: '1m'
 
 runs:
   using: 'composite'
@@ -27,4 +38,10 @@ runs:
       shell: bash
       run: |
         kubectl config set-context --current --namespace=argocd
-        argocd app sync ${{ inputs.app_name }} --core --apply-out-of-sync-only --timeout ${{ inputs.sync_timeout }}
+        argocd app sync ${{ inputs.app_name }} \
+          --core \
+          --apply-out-of-sync-only \
+          --retry-backoff-duration ${{ inputs.retry_backoff_duration }} \
+          --retry-backoff-factor ${{ inputs.retry_backoff_factor }} \
+          --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} \
+          --timeout ${{ inputs.sync_timeout }}
