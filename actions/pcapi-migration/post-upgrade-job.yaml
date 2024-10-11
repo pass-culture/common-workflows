@@ -20,7 +20,11 @@ spec:
             memory: 1024Mi
         envFrom:
         - configMapRef:
+            name: ${ENVIRONMENT}-pcapi-api
+            optional: true
+        - configMapRef:
             name: ${ENVIRONMENT}-pcapi
+            optional: true
         - configMapRef:
             name: ${ENVIRONMENT}-pcapi-api-specific
         - secretRef:
