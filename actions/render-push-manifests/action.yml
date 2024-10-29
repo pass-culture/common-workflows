@@ -97,7 +97,7 @@ runs:
       run: |
         output_dir_tpl=""
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pr-${{ github.event.pull_request.number }}"
+          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ github.event.pull_request.number }}"
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
@@ -116,6 +116,11 @@ runs:
         # Get rid of pcapi/templates for pullrequests (for argocd appset path)
         if [ ${{ inputs.is_pull_request }} = true ]; then
           mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
+          mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
+          mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+          mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
+          mv $output_dir_tpl/pcapi/templates/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
+          mv $output_dir_tpl/pcapi/templates/redis/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
