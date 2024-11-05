@@ -105,8 +105,9 @@ runs:
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
+        # To be verified : only sent with PR, could be simplified with is_pull_request var
         if [ "${APP_VERSION}" ]; then
-          helmfile_template+=(--set image.tag=$APP_VERSION)
+          helmfile_template+=(--state-values-set pcapi.image.tag=$APP_VERSION)
         fi
         #Pass pr number to helmfile argument
         if [ ${{ inputs.is_pull_request }} = true ]; then
