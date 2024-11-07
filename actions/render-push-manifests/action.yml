@@ -118,7 +118,7 @@ runs:
           helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
         fi
         if [ ${{ inputs.target_release }} ]; then
-          helmfile_templase+=(-l name=${{ inputs.target_release }})
+          helmfile_template+=(-l name=${{ inputs.target_release }})
         fi
         "${helmfile_template[@]}"
         # Move rendered templates to rendered-manifests/$RELEASE-pr-$PRID
