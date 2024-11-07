@@ -58,6 +58,10 @@ inputs:
     description: "Boolean wether it is from a pullrequest or not"
     type: boolean
     required: false
+  target_release:
+    description: "[pullrequest only] Specific helmfile release to render"
+    type: string
+    required: false
 
 runs:
   using: 'composite'
@@ -113,15 +117,14 @@ runs:
         if [ ${{ inputs.is_pull_request }} = true ]; then
           helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
         fi
+        if [ ${{ inputs.target_release }} ]; then
+          helmfile_templase+=(-l name=${{ inputs.target_release }})
+        fi
         "${helmfile_template[@]}"
-        # Get rid of pcapi/templates for pullrequests (for argocd appset path)
+        # Move rendered templates to rendered-manifests/$RELEASE-pr-$PRID
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
-          #Move redis and pgsql rendered manifests to their respective root folders
-          mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
-          mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
-          mv $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
-          mv $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+          mkdir ${{ github.workspace }}/rendered-manifests/${{ inputs.target_release }}-pr-${{ github.event.pull_request.number }}
+          mv $output_dir_tpl/${{ inputs.target_release }}/templates/*.yaml ${{ github.workspace }}/rendered-manifests/${{ inputs.target_release }}-pr-${{ github.event.pull_request.number }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
