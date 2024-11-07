@@ -101,7 +101,7 @@ runs:
       run: |
         output_dir_tpl=""
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ github.event.pull_request.number }}"
+          output_dir_tpl="${{ github.workspace }}/rendered-manifests/${{ inputs.target_release }}-pr-${{ github.event.pull_request.number }}"
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
@@ -123,8 +123,7 @@ runs:
         "${helmfile_template[@]}"
         # Move rendered templates to rendered-manifests/$RELEASE-pr-$PRID
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          mkdir ${{ github.workspace }}/rendered-manifests/${{ inputs.target_release }}-pr-${{ github.event.pull_request.number }}
-          mv $output_dir_tpl/${{ inputs.target_release }}/templates/*.yaml ${{ github.workspace }}/rendered-manifests/${{ inputs.target_release }}-pr-${{ github.event.pull_request.number }}
+          mv $output_dir_tpl/${{ inputs.target_release }}/templates/* $output_dir_tpl
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
