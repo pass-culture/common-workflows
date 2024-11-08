@@ -97,7 +97,7 @@ runs:
 
     - name: "Setup helmfile"
       uses: mamezou-tech/setup-helmfile@v2.0.0
-      if: inputs.setup_helmfile == true
+      if: ${{ inputs.setup_helmfile == 'true' }}
       with:
         helmfile-version: "v0.147.0"
 
