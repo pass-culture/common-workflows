@@ -26,7 +26,7 @@ runs:
         JOB_NAME=pre-upgrade-${DATE}
         envsubst < ${{ github.action_path }}/pre-upgrade-job.yaml | kubectl -n ${{ inputs.environment }} apply -f -
         # kubectl logs returns 0 if pod is pending because of lack of resource so we use a more elaborate condition
-        kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=180s
+        kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=300s
         # Next lines assume that job's backoffLimit is 0
         kubectl logs -n ${{ inputs.environment }} -f jobs/${JOB_NAME}
         kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} # Sanity check that the job is over
@@ -51,7 +51,7 @@ runs:
         JOB_NAME=post-upgrade-${DATE}
         envsubst < ${{github.action_path }}/post-upgrade-job.yaml | kubectl -n ${{ inputs.environment }} apply -f -
         # kubectl logs returns 0 if pod is pending because of lack of resource so we use a more elaborate condition
-        kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=180s
+        kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=300s
         # Next lines assume that job's backoffLimit is 0
         kubectl logs -n ${{ inputs.environment }} -f jobs/${JOB_NAME}
         kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} # Sanity check that the job is over
