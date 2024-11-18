@@ -113,6 +113,7 @@ runs:
         format: table
         output: scan_output.txt
         severity: 'CRITICAL,HIGH'
+        trivyignores: '.trivyignore'
 
 
     - name: 'Set destination branch'
