@@ -25,6 +25,8 @@ inputs:
     description: Whether or not to execute argocd app wait
     required: false
     default: false
+  prune:
+    description: Wether or not to use argocd prune option
 
 runs:
   using: 'composite'
@@ -48,7 +50,11 @@ runs:
           --retry-backoff-duration ${{ inputs.retry_backoff_duration }} \
           --retry-backoff-factor ${{ inputs.retry_backoff_factor }} \
           --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} \
+          if [ ${{ inputs.argocd_app_wait }} == 'true' ]; then
+          --prune \
+          fi
           --timeout ${{ inputs.sync_timeout }}
+
         if [ ${{ inputs.argocd_app_wait }} == 'true' ]; then
           argocd app wait ${{ inputs.app_name }} --core
         fi
