@@ -97,9 +97,20 @@ runs:
       with:
         helmfile-version: "v0.147.0"
 
+      # Check pcapi/pullrequest branch
+    - name: 'Checkout current rendered-manifests branch'
+      uses: actions/checkout@v4
+      if: ${{ inputs.is_pull_request == 'true' }}
+      with:
+        repository: pass-culture/rendered-manifests
+        path: ${{ github.workspace }}/rendered-manifests
+        token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
+        ref: pcapi/pullrequests
+
     - name: "Render manifests"
       shell: bash
       run: |
+        set +e
         output_dir_tpl=""
         if [ ${{ inputs.is_pull_request }} = true ]; then
           output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ github.event.pull_request.number }}"
