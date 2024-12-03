@@ -133,11 +133,11 @@ runs:
         # Get rid of pcapi/templates for pullrequests (for argocd appset path)
         if [ ${{ inputs.is_pull_request }} = true ]; then
           mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
-          #Move redis and pgsql rendered manifests to their respective root folders
-          mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
-          mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
-          mv $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
-          mv $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+          # Move redis and pgsql rendered manifests to their respective root folders
+          [[ -d ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
+          [[ -d ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+          cp -fr $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
+          cp -fr $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
