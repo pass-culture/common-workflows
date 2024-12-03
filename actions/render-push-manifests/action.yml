@@ -38,7 +38,7 @@ inputs:
     required: false
     default: "."
   rendered_manifests_target_branch:
-    description: "Target branch for rendered-manifests. Mainly used for testing purposes, Use with caution."
+    description: "Target branch for rendered-manifests. Mainly used for pullrequests and testing purposes, Use with caution."
     type: string
     required: false
     default: ''
@@ -54,6 +54,14 @@ inputs:
     description: "Perform diff operation and report back to PR (must be used with PR events)"
     type: boolean
     default: false
+  is_pull_request:
+    description: "Boolean wether it is from a pullrequest or not"
+    type: boolean
+    required: false
+  setup_helmfile:
+    description: "Set to false if calling this action several times within a single job"
+    type: boolean
+    default: true
 
 runs:
   using: 'composite'
@@ -66,6 +74,7 @@ runs:
           ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER:${{ inputs.registry_workload_identity_secret_name }}
           ARTIFACT_REGISTRY_SERVICE_ACCOUNT:${{ inputs.registry_service_account_secret_name }}
           API_TOKEN_GITHUB:${{ inputs.api_token_github_secret_name }}
+
     - name: "Connect to docker registry"
       id: "connect-registry"
       uses: 'google-github-actions/auth@v2'
@@ -74,27 +83,51 @@ runs:
         token_format: 'access_token'
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
+
     - uses: actions/checkout@v4.1.5
       if: inputs.chart_values_repository != ''
       with:
         repository: ${{ inputs.chart_values_repository }}
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
         ref: ${{ inputs.chart_values_repository_ref }}
+
     - name: "Setup helmfile"
-      uses: mamezou-tech/setup-helmfile@v1.3.0
+      uses: mamezou-tech/setup-helmfile@v2.0.0
+      if: ${{ inputs.setup_helmfile == 'true' }}
       with:
         helmfile-version: "v0.147.0"
+
     - name: "Render manifests"
       shell: bash
       run: |
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ./rendered-manifests/ --output-dir-template "{{ .OutputDir }}") 
+        output_dir_tpl=""
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ github.event.pull_request.number }}"
+        else
+          output_dir_tpl="{{ .OutputDir }}"
+        fi
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template $output_dir_tpl)
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
+        # To be verified : only sent with PR, could be simplified with is_pull_request var
         if [ "${APP_VERSION}" ]; then
-          helmfile_template+=(--set image.tag=$APP_VERSION)
+          helmfile_template+=(--state-values-set pcapi.image.tag=$APP_VERSION)
+        fi
+        #Pass pr number to helmfile argument
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
         fi
         "${helmfile_template[@]}"
+        # Get rid of pcapi/templates for pullrequests (for argocd appset path)
+        if [ ${{ inputs.is_pull_request }} = true ]; then
+          mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
+          #Move redis and pgsql rendered manifests to their respective root folders
+          mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
+          mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+          mv $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
+          mv $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+        fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         APP_NAME: ${{ inputs.app_name }}
@@ -115,7 +148,6 @@ runs:
         severity: 'CRITICAL,HIGH'
         trivyignores: '.trivyignore'
 
-
     - name: 'Set destination branch'
       shell: bash
       if: ${{ inputs.push_manifests == 'true' }}
@@ -126,7 +158,6 @@ runs:
         else
           echo "destination_branch=${{ inputs.rendered_manifests_target_branch }}" | tee -a ${GITHUB_OUTPUT}
         fi
-
 
     # Diff operation
     - name: 'Checkout current rendered-manifests branch'
@@ -180,7 +211,7 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
       with:
-        source-directory: ${{ inputs.helmfile_path }}/rendered-manifests/
+        source-directory: ./rendered-manifests/
         destination-github-username: 'pass-culture'
         destination-repository-name: 'rendered-manifests'
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
