@@ -21,6 +21,14 @@ inputs:
     description: Max retry backoff duration.
     required: false
     default: '1m'
+  argocd_app_wait:
+    description: Whether or not to execute argocd app wait
+    required: false
+    default: false
+  prune:
+    description: Wether or not to use argocd prune option
+    required: false
+    default: false
 
 runs:
   using: 'composite'
@@ -38,10 +46,11 @@ runs:
       shell: bash
       run: |
         kubectl config set-context --current --namespace=argocd
-        argocd app sync ${{ inputs.app_name }} \
-          --core \
-          --apply-out-of-sync-only \
-          --retry-backoff-duration ${{ inputs.retry_backoff_duration }} \
-          --retry-backoff-factor ${{ inputs.retry_backoff_factor }} \
-          --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} \
-          --timeout ${{ inputs.sync_timeout }}
+        argocd_app_sync=(argocd app sync ${{ inputs.app_name }} --core --apply-out-of-sync-only --retry-backoff-duration ${{ inputs.retry_backoff_duration }} --retry-backoff-factor ${{ inputs.retry_backoff_factor }} --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} --timeout ${{ inputs.sync_timeout }})
+        if [ ${{ inputs.prune }} == 'true' ]; then
+          argocd_app_sync+=(--prune)
+        fi
+        "${argocd_app_sync[@]}"
+        if [ ${{ inputs.argocd_app_wait }} == 'true' ]; then
+          argocd app wait ${{ inputs.app_name }} --core
+        fi
