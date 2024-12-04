@@ -129,12 +129,10 @@ runs:
         if [ "${APP_VERSION}" ]; then
           helmfile_template+=(--state-values-set pcapi.image.tag=$APP_VERSION)
         fi
-        #Pass pr number to helmfile argument
+        # Pass pr number to helmfile argument
+        # Pass PRO_URL to helmfile argument
         if [ ${{ inputs.is_pull_request }} = true ]; then
           helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
-        fi
-        #Pass pro url to helmfile argument (for pullrequest deployments)
-        if [ ${{ inputs.pro_url }} = true ]; then
           helmfile_template+=(--state-values-set proUrl=${{ inputs.pro_url }})
         fi
 
