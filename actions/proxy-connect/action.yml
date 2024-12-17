@@ -1,0 +1,35 @@
+name: 'Proxy connect action'
+description: 'This action connects to a given kubernetes cluster through a given proxy'
+inputs:
+  project_short_name: The project short-name
+    required: true
+  project_proxy:
+    description: The project proxy to connect to
+    required: true
+  proxy_kubernetes_cluster:
+    description: The kubernetes cluster to connect to
+    required: true
+  connection_timeout:
+    description: The amount of time that the authentication is valid for 
+    required: false
+    default: 1h
+
+env:
+  GCLOUD_CONNEXION: |
+      nohup gcloud compute ssh --zone "europe-west1-b" "tinyproxy-${{ input.project_short_name }}" --tunnel-through-iap --project "${{ input.project_proxy }}" --command 'sleep 3600' -- -fN -D 127.0.0.1:11111
+      gcloud container clusters get-credentials ${{ input.proxy_kubernetes_cluster }} --region=europe-west1 --project=${{ input.project_proxy }}
+      export HTTPS_PROXY=socks5://127.0.0.1:11111
+runs:
+  using: 'composite'
+  steps:
+    - uses: google-github-actions/setup-gcloud@v2
+
+    - name: Setup kubectl
+      run: gcloud components install kubectl
+
+    - uses: google-github-actions/setup-gcloud@v2
+
+    - name: Connect to cluster
+      run: |
+        eval "$GCLOUD_CONNEXION"
+
