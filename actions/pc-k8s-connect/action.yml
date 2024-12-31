@@ -23,7 +23,7 @@ runs:
         repository: pass-culture/pc-k8s-connect
         path: ${{ github.workspace }}/pc-k8s-connect
         token: ${{ inputs.api_token_github }}
-        ref: ${{ pc_k8s_connect_version }}
+        ref: ${{ inputs.pc_k8s_connect_version }}
 
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
@@ -33,4 +33,4 @@ runs:
     - name: "Connect to cluster"
       shell: bash
       run: |
-        ${{github.workspace}}/pc-k8s-connect/pc-k8s-connect -s ${{ cluster_scope }} -e ${{ cluster_environment }}
+        ${{ github.workspace }}/pc-k8s-connect/pc-k8s-connect -s ${{ inputs.cluster_scope }} -e ${{ inputs.cluster_environment }}
