@@ -1,0 +1,36 @@
+name: 'k8s connect action'
+description: 'This action allows connecting and performing action on a pass-culture kubernetes cluster through a bastion VM (tinyproxy)'
+inputs:
+  cluster_scope:
+    description: The scope of the cluster (metier/data/infra)
+    required: true
+  cluster_environment:
+    description: The environment of the cluster (prod/ehp)
+    required: true
+  api_token_github: 
+    description: The Github Token API to use to clone the pc-k8s-connect repo 
+    required: true
+  pc_k8s_connect_version:
+    description: The revision of the pc-k8s-connect script to use
+    required: false
+    default: main
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: pass-culture/pc-k8s-connect
+        path: ${{ github.workspace }}/pc-k8s-connect
+        token: ${{ inputs.api_token_github }}
+        ref: ${{ pc_k8s_connect_version }}
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+      with:
+        install_components: 'gke-gcloud-auth-plugin,kubectl'
+
+    - name: "Connect to cluster"
+      shell: bash
+      run: |
+        ${{github.workspace}}/pc-k8s-connect/pc-k8s-connect -s ${{ cluster_scope }} -e ${{ cluster_environment }}
