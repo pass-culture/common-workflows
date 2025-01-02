@@ -29,6 +29,10 @@ inputs:
     description: Wether or not to use argocd prune option
     required: false
     default: false
+  extra_flags:
+    description: Additional flags that you want to pass to argocd sync
+    required: false
+    default: ""
 
 runs:
   using: 'composite'
@@ -46,7 +50,7 @@ runs:
       shell: bash
       run: |
         kubectl config set-context --current --namespace=argocd
-        argocd_app_sync=(argocd app sync ${{ inputs.app_name }} --core --apply-out-of-sync-only --retry-backoff-duration ${{ inputs.retry_backoff_duration }} --retry-backoff-factor ${{ inputs.retry_backoff_factor }} --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} --timeout ${{ inputs.sync_timeout }})
+        argocd_app_sync=(argocd app sync ${{ inputs.app_name }} --core --apply-out-of-sync-only --retry-backoff-duration ${{ inputs.retry_backoff_duration }} --retry-backoff-factor ${{ inputs.retry_backoff_factor }} --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} --timeout ${{ inputs.sync_timeout }} ${{ inputs.extra_flags }})
         if [ ${{ inputs.prune }} == 'true' ]; then
           argocd_app_sync+=(--prune)
         fi
