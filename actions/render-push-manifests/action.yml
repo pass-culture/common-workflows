@@ -88,10 +88,11 @@ runs:
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
 
-    - uses: actions/checkout@v4.1.5
+    - uses: actions/checkout@v4
       if: inputs.chart_values_repository != ''
       with:
         repository: ${{ inputs.chart_values_repository }}
+        path: values
         token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
         ref: ${{ inputs.chart_values_repository_ref }}
 
@@ -116,12 +117,25 @@ runs:
       run: |
         set +e
         output_dir_tpl=""
-        if [ ${{ inputs.is_pull_request }} = true ]; then
+        if [ "${{ inputs.is_pull_request }}" = true ]; then
           output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ github.event.pull_request.number }}"
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template $output_dir_tpl)
+        if [ "${{ inputs.chart_values_repository }}" = "" ]; then
+          if [ "${{ inputs.helmfile_path }}" = "." ]; then
+            helmfile_path="${{ github.workspace }}"
+          else
+            helmfile_path="${{ github.workspace }}/${{ inputs.helmfile_path }}"
+          fi
+        else
+          if [ "${{ inputs.helmfile_path }}" = "." ]; then
+            helmfile_path="${{ github.workspace }}/values"
+          else
+            helmfile_path="${{ github.workspace }}/values/${{ inputs.helmfile_path }}"
+          fi
+        fi
+        helmfile_template=(helmfile -f ${helmfile_path}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template $output_dir_tpl)
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
@@ -131,14 +145,14 @@ runs:
         fi
         # Pass pr number to helmfile argument
         # Pass PRO_URL to helmfile argument
-        if [ ${{ inputs.is_pull_request }} = true ]; then
+        if [ "${{ inputs.is_pull_request }}" = true ]; then
           helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
           helmfile_template+=(--state-values-set proUrl=${{ inputs.pro_url }})
         fi
 
         "${helmfile_template[@]}"
         # Get rid of pcapi/templates for pullrequests (for argocd appset path)
-        if [ ${{ inputs.is_pull_request }} = true ]; then
+        if [ "${{ inputs.is_pull_request }}" = true ]; then
           mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
           # Move redis and pgsql rendered manifests to their respective root folders
           [[ -d ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
@@ -164,7 +178,6 @@ runs:
         format: table
         output: scan_output.txt
         severity: 'CRITICAL,HIGH'
-        trivyignores: '.trivyignore'
 
     - name: 'Set destination branch'
       shell: bash
@@ -192,7 +205,20 @@ runs:
       shell: bash
       id: 'diff'
       run: |
-        diff -r -u ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true 
+        if [ "${{ inputs.chart_values_repository }}" = "" ]; then
+          if [ "${{ inputs.helmfile_path }}" = "." ]; then
+            helmfile_path="${{ github.workspace }}"
+          else
+            helmfile_path="${{ github.workspace }}/${{ inputs.helmfile_path }}"
+          fi
+        else
+          if [ "${{ inputs.helmfile_path }}" = "." ]; then
+            helmfile_path="${{ github.workspace }}/values"
+          else
+            helmfile_path="${{ github.workspace }}/values/${{ inputs.helmfile_path }}"
+          fi
+        fi
+        diff -r -u ${helmfile_path}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true 
   
     - name: 'Concat outputs'
       if: ${{ inputs.diff == 'true' }}
