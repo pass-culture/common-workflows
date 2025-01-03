@@ -10,6 +10,12 @@ inputs:
   api_token_github: 
     description: The Github Token API to use to clone the pc-k8s-connect repo 
     required: true
+  service_account: 
+    description: The Service Account used to access the proxy
+    required: true
+  workload_identity_provider: 
+    description: The workload identity provider
+    required: true
   pc_k8s_connect_version:
     description: The revision of the pc-k8s-connect script to use
     required: false
@@ -24,6 +30,12 @@ runs:
         path: ${{ github.workspace }}/pc-k8s-connect
         token: ${{ inputs.api_token_github }}
         ref: ${{ inputs.pc_k8s_connect_version }}
+
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        workload_identity_provider: ${{ inputs.workload_identity_provider }}
+        service_account: ${{ inputs.service_account }}
 
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
