@@ -20,7 +20,7 @@ runs:
   steps:
     - uses: actions/checkout@v4
       with:
-        repository: pass-culture/pc-k8s-connect
+        repository: pass-culture/pc-connect
         path: ${{ github.workspace }}/pc-k8s-connect
         token: ${{ inputs.api_token_github }}
         ref: ${{ inputs.pc_k8s_connect_version }}
