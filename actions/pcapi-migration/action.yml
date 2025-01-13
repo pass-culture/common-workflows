@@ -29,7 +29,7 @@ runs:
         kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=300s
         # Next lines assume that job's backoffLimit is 0
         kubectl logs -n ${{ inputs.environment }} -f jobs/${JOB_NAME}
-        kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} # Sanity check that the job is over
+        kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} --timeout=60s || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} --timeout=60s # Sanity check that the job is over
         failure=$(kubectl get -n ${{ inputs.environment }} jobs/${JOB_NAME} -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}') # Did the job fail or not so we can give correct return code
         if [[ "$failure" == "True" ]]
         then
