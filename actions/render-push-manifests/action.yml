@@ -96,11 +96,8 @@ runs:
         ref: ${{ inputs.chart_values_repository_ref }}
 
     - name: "Setup helmfile"
-      uses: mamezou-tech/setup-helmfile@v2.0.0
+      uses: mamezou-tech/setup-helmfile@v2.1.0
       if: ${{ inputs.setup_helmfile == 'true' }}
-      with:
-        helmfile-version: "v0.147.0"
-        helm-s3-plugin-version: "v0.16.2"
 
       # Check pcapi/pullrequest branch
     - name: 'Checkout current rendered-manifests branch'
