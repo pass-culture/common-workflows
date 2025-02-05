@@ -119,7 +119,7 @@ runs:
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template $output_dir_tpl)
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
