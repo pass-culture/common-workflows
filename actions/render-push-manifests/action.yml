@@ -66,6 +66,9 @@ inputs:
     description: "pro url from firebase deployment for pullrequests"
     type: string
     required: false
+  resource_label:
+    description: "label to apply to all resources created"
+    type: string
 
 runs:
   using: 'composite'
@@ -115,7 +118,7 @@ runs:
         set +e
         output_dir_tpl=""
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ github.event.pull_request.number }}"
+          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ inputs.resource_label }}"
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
@@ -130,7 +133,7 @@ runs:
         # Pass pr number to helmfile argument
         # Pass PRO_URL to helmfile argument
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          helmfile_template+=(--state-values-set prId=${{ github.event.pull_request.number }})
+          helmfile_template+=(--state-values-set prId=${{ inputs.resource_label }})
           helmfile_template+=(--state-values-set proUrl=${{ inputs.pro_url }})
         fi
 
@@ -139,10 +142,10 @@ runs:
         if [ ${{ inputs.is_pull_request }} = true ]; then
           mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
           # Move redis and pgsql rendered manifests to their respective root folders
-          [[ -d ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
-          [[ -d ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
-          cp -fr $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ github.event.pull_request.number }}
-          cp -fr $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ github.event.pull_request.number }}
+          [[ -d ${{ github.workspace }}/rendered-manifests/redis-pr-${{ inputs.resource_label }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ inputs.resource_label }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ inputs.resource_label }}
+          [[ -d ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ inputs.resource_label }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ inputs.resource_label }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ inputs.resource_label }}
+          cp -fr $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ inputs.resource_label }}
+          cp -fr $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ inputs.resource_label }}
         fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
