@@ -1,5 +1,5 @@
-name: 'k8s connect action'
-description: 'This action allows connecting and performing action on a pass-culture kubernetes cluster through a bastion VM (tinyproxy)'
+name: "k8s connect action"
+description: "This action allows connecting and performing action on a pass-culture kubernetes cluster through a bastion VM (tinyproxy)"
 inputs:
   cluster_scope:
     description: The scope of the cluster (metier/data/infra)
@@ -7,16 +7,20 @@ inputs:
   cluster_environment:
     description: The environment of the cluster (prod/ehp)
     required: true
-  api_token_github: 
-    description: The Github Token API to use to clone the pc-k8s-connect repo 
+  api_token_github:
+    description: The Github Token API to use to clone the pc-k8s-connect repo
     required: true
   pc_k8s_connect_version:
     description: The revision of the pc-k8s-connect script to use
     required: false
     default: main
+  pc_firestore_version:
+    description: The revision of the pc-firestore script to use
+    required: false
+    default: main
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - uses: actions/checkout@v4
       with:
@@ -25,10 +29,26 @@ runs:
         token: ${{ inputs.api_token_github }}
         ref: ${{ inputs.pc_k8s_connect_version }}
 
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v2'
+    - uses: actions/checkout@v4
       with:
-        install_components: 'gke-gcloud-auth-plugin,kubectl'
+        repository: pass-culture/pc-firestore-cli
+        path: ${{ github.workspace }}/pc-firestore-cli
+        token: ${{ inputs.api_token_github }}
+        ref: ${{ inputs.pc_firestore_version }}
+
+    - name: "Add GOBIN to PATH"
+      shell: bash
+      run: echo "$HOME/go/bin" >> $GITHUB_PATH
+
+    - name: "Build firestore cli"
+      run: |
+        cd pc-firestore-cli && go install .
+      shell: bash
+
+    - name: "Set up Cloud SDK"
+      uses: "google-github-actions/setup-gcloud@v2"
+      with:
+        install_components: "gke-gcloud-auth-plugin,kubectl"
 
     - name: "Connect to cluster"
       shell: bash
