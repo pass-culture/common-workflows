@@ -1,5 +1,5 @@
-name: 'Render and push manifests'
-description: 'This composite action executes helm template and push results to the render-manifests repository'
+name: "Render and push manifests"
+description: "This composite action executes helm template and push results to the render-manifests repository"
 inputs:
   environment:
     type: string
@@ -14,8 +14,9 @@ inputs:
     description: "Optional helm parameter value"
     type: string
     required: false
-  api_token_github_secret_name:
+  api_token_github:
     type: string
+    description: "A Github token (PAT or app installation token) with write permission on repo"
     required: true
   registry_workload_identity_secret_name:
     type: string
@@ -30,8 +31,8 @@ inputs:
   chart_values_repository_ref:
     description: "Repository ref containing helm chart values"
     type: string
-    required: false    
-    default: ''
+    required: false
+    default: ""
   helmfile_path:
     description: "Location of helmfile.yaml inside repository"
     type: string
@@ -41,7 +42,7 @@ inputs:
     description: "Target branch for rendered-manifests. Mainly used for pullrequests and testing purposes, Use with caution."
     type: string
     required: false
-    default: ''
+    default: ""
   push_manifests:
     description: "Push manifests to target_branch"
     type: boolean
@@ -71,23 +72,22 @@ inputs:
     type: string
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: "Get secrets (artifact registry, github)"
-      id: 'get-secrets'
-      uses: 'google-github-actions/get-secretmanager-secrets@v2'
+      id: "get-secrets"
+      uses: "google-github-actions/get-secretmanager-secrets@v2"
       with:
         secrets: |-
           ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER:${{ inputs.registry_workload_identity_secret_name }}
           ARTIFACT_REGISTRY_SERVICE_ACCOUNT:${{ inputs.registry_service_account_secret_name }}
-          API_TOKEN_GITHUB:${{ inputs.api_token_github_secret_name }}
 
     - name: "Connect to docker registry"
       id: "connect-registry"
-      uses: 'google-github-actions/auth@v2'
+      uses: "google-github-actions/auth@v2"
       with:
         create_credentials_file: false
-        token_format: 'access_token'
+        token_format: "access_token"
         workload_identity_provider: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ steps.get-secrets.outputs.ARTIFACT_REGISTRY_SERVICE_ACCOUNT }}
 
@@ -95,7 +95,7 @@ runs:
       if: inputs.chart_values_repository != ''
       with:
         repository: ${{ inputs.chart_values_repository }}
-        token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
+        token: ${{ inputs.api_token_github }}
         ref: ${{ inputs.chart_values_repository_ref }}
 
     - name: "Setup helmfile"
@@ -103,13 +103,13 @@ runs:
       if: ${{ inputs.setup_helmfile == 'true' }}
 
       # Check pcapi/pullrequest branch
-    - name: 'Checkout current rendered-manifests branch'
+    - name: "Checkout current rendered-manifests branch"
       uses: actions/checkout@v4
       if: ${{ inputs.is_pull_request == 'true' }}
       with:
         repository: pass-culture/rendered-manifests
         path: ${{ github.workspace }}/rendered-manifests
-        token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
+        token: ${{ inputs.api_token_github }}
         ref: pcapi/pullrequests
 
     - name: "Render manifests"
@@ -164,13 +164,13 @@ runs:
         hide-progress: true
         format: table
         output: scan_output.txt
-        severity: 'CRITICAL,HIGH'
-        trivyignores: '.trivyignore'
+        severity: "CRITICAL,HIGH"
+        trivyignores: ".trivyignore"
 
-    - name: 'Set destination branch'
+    - name: "Set destination branch"
       shell: bash
       if: ${{ inputs.push_manifests == 'true' }}
-      id: 'compute-branch-name'
+      id: "compute-branch-name"
       run: |
         if [ -z "${{ inputs.rendered_manifests_target_branch }}" ]; then
           echo "destination_branch=${{ inputs.app_name }}/${{ inputs.environment }}" | tee -a ${GITHUB_OUTPUT}
@@ -179,23 +179,23 @@ runs:
         fi
 
     # Diff operation
-    - name: 'Checkout current rendered-manifests branch'
+    - name: "Checkout current rendered-manifests branch"
       uses: actions/checkout@v4
       if: ${{ inputs.diff == 'true' }}
       with:
         repository: pass-culture/rendered-manifests
         path: current-rendered-manifests
-        token: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
+        token: ${{ inputs.api_token_github }}
         ref: "${{ steps.compute-branch-name.outputs.destination_branch }}"
 
-    - name: 'Diff'
+    - name: "Diff"
       if: ${{ inputs.diff == 'true' }}
       shell: bash
-      id: 'diff'
+      id: "diff"
       run: |
-        diff -r -u ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true 
-  
-    - name: 'Concat outputs'
+        diff -r -u ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true
+
+    - name: "Concat outputs"
       if: ${{ inputs.diff == 'true' }}
       shell: bash
       run: |
@@ -215,12 +215,11 @@ runs:
         echo "" >> output.txt
         echo "</details>" >> output.txt
 
-    - name: 'Post output to PR'
+    - name: "Post output to PR"
       if: ${{ inputs.diff == 'true' }}
       uses: thollander/actions-comment-pull-request@v2
       with:
         filepath: output.txt
-
 
     # Push manifests
     - name: "Push manifests to rendered-manifests repository"
@@ -228,11 +227,11 @@ runs:
       if: ${{ inputs.push_manifests == 'true' }}
       uses: cpina/github-action-push-to-another-repository@main
       env:
-        API_TOKEN_GITHUB: ${{ steps.get-secrets.outputs.API_TOKEN_GITHUB }}
+        API_TOKEN_GITHUB: ${{ inputs.api_token_github }}
       with:
         source-directory: ./rendered-manifests/
-        destination-github-username: 'pass-culture'
-        destination-repository-name: 'rendered-manifests'
+        destination-github-username: "pass-culture"
+        destination-repository-name: "rendered-manifests"
         commit-message: "${{ inputs.app_name }}(${{ inputs.environment }}) : manifests for app_version=${{ inputs.app_version }}"
         target-branch: "${{ steps.compute-branch-name.outputs.destination_branch }}"
         create-target-branch-if-needed: true
