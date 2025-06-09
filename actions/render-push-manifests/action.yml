@@ -70,6 +70,10 @@ inputs:
   resource_label:
     description: "label to apply to all resources created"
     type: string
+  trivyignores:
+    description: "Path to a trivyignore file"
+    default: ".trivyignore"
+    type: string
 
 runs:
   using: "composite"
@@ -165,7 +169,7 @@ runs:
         format: table
         output: scan_output.txt
         severity: "CRITICAL,HIGH"
-        trivyignores: ".trivyignore"
+        trivyignores: "${{ inputs.trivyignores }}"
 
     - name: "Set destination branch"
       shell: bash
