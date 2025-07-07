@@ -34,7 +34,7 @@ inputs:
     required: false
     default: ""
   helmfile_path:
-    description: "Location of helmfile.yaml inside repository"
+    description: "Location of helmfile.yaml  or helmfile.yaml.gotmpl inside repository"
     type: string
     required: false
     default: "."
@@ -126,7 +126,12 @@ runs:
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
+        if [ -f "${{ inputs.helmfile_path }}/helmfile.yaml.gotmpl" ]; then
+          helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml.gotmpl -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
+        else
+          helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
+        fi
+        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml.gotmpl -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
