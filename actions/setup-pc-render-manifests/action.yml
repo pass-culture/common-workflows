@@ -1,0 +1,13 @@
+name: setup-pc-render-manifests
+description: "Action to setup pc-render-manifest"
+inputs:
+  token:
+    description: "Github token to download the tool"
+    required: true
+  version:
+    description: "pc-render-manifests version"
+    default: "v0.7.1"
+    required: false
+runs:
+  using: "node20"
+  main: "dist/index.js"
