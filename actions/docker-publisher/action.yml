@@ -1,0 +1,92 @@
+name: "Build, push, and sign Docker image"
+description: "Builds a Docker image, pushes it to Artifact Registry, and signs it with Cosign"
+inputs:
+  docker_registry_project_id:
+    required: true
+    description: "GCP Project ID of Artifact Registry"
+  docker_registry_region:
+    required: true
+    description: "Region of the Artifact Registry"
+  docker_registry_repository:
+    required: true
+    description: "Artifact Registry repository name"
+  image_name:
+    required: true
+    description: "Directory containing Dockerfile and name of the image"
+  version:
+    required: true
+    description: "Tag/version of the image"
+  cosign_kms_key:
+    required: true
+    description: "GCP KMS key used to sign the image"
+  workload_identity_provider:
+    required: true
+    description: "GCP workload identity provider (secret)"
+  service_account:
+    required: true
+    description: "GCP service account email (secret)"
+  passculture_github_action_app_id:
+    required: true
+    description: "Github Application ID to use to clone other repos"
+  passculture_github_action_app_private_key:
+    required: true
+    description: "Private key for the Github application used to clone other repos"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Authenticate with GCP (OIDC)
+      uses: google-github-actions/auth@v2
+      id: openid-auth
+      with:
+        create_credentials_file: true
+        token_format: "access_token"
+        workload_identity_provider: ${{ inputs.workload_identity_provider }}
+        service_account: ${{ inputs.service_account }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3.8.0
+      with:
+        driver: docker
+
+    - name: Docker login to Artifact Registry
+      uses: docker/login-action@v3.3.0
+      with:
+        registry: "${{ inputs.docker_registry_region }}-docker.pkg.dev"
+        username: "oauth2accesstoken"
+        password: "${{ steps.openid-auth.outputs.access_token }}"
+
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.7.0
+
+    - name: Authenticate through github app ghactionci
+      uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+      id: github-token
+      with:
+        app-id: ${{ inputs.passculture_github_action_app_id }}
+        private-key: ${{ inputs.passculture_github_action_app_private_key }}
+        owner: ${{ github.repository_owner }}
+        # Liste des repositories à cloner
+        repositories: |
+          pc-render-manifests
+          infra
+        permission-contents: read
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6.10.0
+      id: docker-push-action
+      with:
+        context: ${{ inputs.image_name }}
+        push: true
+        tags: "${{ inputs.docker_registry_region }}-docker.pkg.dev/${{ inputs.docker_registry_project_id }}/${{ inputs.docker_registry_repository }}/${{ inputs.image_name }}:${{ inputs.version }}"
+        secrets: |
+          github-token=${{ steps.github-token.outputs.token }}
+
+    - name: Sign image with Cosign
+      shell: bash
+      run: |
+        cosign sign \
+          --tlog-upload=false \
+          --key gcpkms://${{ inputs.cosign_kms_key }} \
+          -a tag=${{ inputs.version }} \
+          "${{ inputs.docker_registry_region }}-docker.pkg.dev/${{ inputs.docker_registry_project_id }}/${{ inputs.docker_registry_repository }}/${{ inputs.image_name }}@${{ steps.docker-push-action.outputs.digest }}"
