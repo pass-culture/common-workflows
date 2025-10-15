@@ -45,7 +45,7 @@ runs:
         https://api.github.com/repos/pass-culture/pc-firestore-cli/releases/assets/$asset_id -o pc-firestore-cli.tar.gz
         tar -xzvf pc-firestore-cli.tar.gz
         chmod +x pc-firestore-cli
-        mkdir bin
+        mkdir -p bin
         mv pc-firestore-cli bin/pc-firestore-cli
         echo "$PWD/bin" >> $GITHUB_PATH
 
