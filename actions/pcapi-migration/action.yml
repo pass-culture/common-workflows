@@ -10,6 +10,9 @@ inputs:
   migration_type:
     required: true
     description: "pre for pre-migrations and post for post-migrations"
+  artifact_registry:
+    required: true
+    default: europe-west1-docker.pkg.dev/passculture-infra-prod/pass-culture-artifact-registry
 runs:
   using: 'composite'
   steps:
@@ -20,7 +23,7 @@ runs:
         set -e
         VERSION="${{ inputs.app_version }}"
         export ENVIRONMENT="${{ inputs.environment }}"
-        IMAGE="europe-west1-docker.pkg.dev/passculture-infra-prod/pass-culture-artifact-registry/pcapi"
+        IMAGE="${{ inputs.artifact_registry }}/pcapi"
         export IMAGE="${IMAGE}:${VERSION}"
         export DATE=$(date +"%Y-%m-%d--%H-%M-%S")
         JOB_NAME=pre-upgrade-${DATE}

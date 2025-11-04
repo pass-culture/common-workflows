@@ -26,7 +26,7 @@ spec:
             name: ${ENVIRONMENT}-pcapi
             optional: true
         - configMapRef:
-            name: ${ENVIRONMENT}-pcapi-api-specific
+            name: ${ENVIRONMENT}-api-specific
         - secretRef:
             name: ${ENVIRONMENT}-pcapi
         command:
