@@ -1,5 +1,5 @@
-name: 'pcapi-pre-migration'
-description: 'This composite action executes pre-migration on a given pcapi environment'
+name: "pcapi-pre-migration"
+description: "This composite action executes pre-migration on a given pcapi environment"
 inputs:
   environment:
     required: true
@@ -14,7 +14,7 @@ inputs:
     required: true
     default: europe-west1-docker.pkg.dev/passculture-infra-prod/pass-culture-artifact-registry
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: "Play pre-migrations"
       if: inputs.migration_type == 'pre'
@@ -48,16 +48,16 @@ runs:
         set -e
         VERSION="${{ inputs.app_version }}"
         export ENVIRONMENT="${{ inputs.environment }}"
-        IMAGE="europe-west1-docker.pkg.dev/passculture-infra-prod/pass-culture-artifact-registry/pcapi"
+        IMAGE="${{ inputs.artifact_registry }}/pcapi"
         export IMAGE="${IMAGE}:${VERSION}"
         export DATE=$(date +"%Y-%m-%d--%H-%M-%S")
         JOB_NAME=post-upgrade-${DATE}
-        envsubst < ${{github.action_path }}/post-upgrade-job.yaml | kubectl -n ${{ inputs.environment }} apply -f -
+        envsubst < ${{ github.action_path }}/post-upgrade-job.yaml | kubectl -n ${{ inputs.environment }} apply -f -
         # kubectl logs returns 0 if pod is pending because of lack of resource so we use a more elaborate condition
         kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=300s
         # Next lines assume that job's backoffLimit is 0
         kubectl logs -n ${{ inputs.environment }} -f jobs/${JOB_NAME}
-        kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} --timeout=120s || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} --timeout=120s #Sanity check that the job is over
+        kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} --timeout=120s || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} --timeout=120s # Sanity check that the job is over
         failure=$(kubectl get -n ${{ inputs.environment }} jobs/${JOB_NAME} -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}') # Did the job fail or not so we can give correct return code
         if [[ "$failure" == "True" ]]
         then
@@ -65,4 +65,3 @@ runs:
         else
           exit 0
         fi
-

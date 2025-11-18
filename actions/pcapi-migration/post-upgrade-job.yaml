@@ -9,32 +9,32 @@ spec:
     spec:
       activeDeadlineSeconds: 10800
       containers:
-      - name: pcapi
-        image: ${IMAGE}
-        imagePullPolicy: Always
-        resources:
-          requests:
-            memory: 1024Mi
-            cpu: 0.5
-          limits:
-            memory: 1024Mi
-        envFrom:
-        - configMapRef:
-            name: ${ENVIRONMENT}-pcapi-api
-            optional: true
-        - configMapRef:
-            name: ${ENVIRONMENT}-pcapi
-            optional: true
-        - configMapRef:
-            name: ${ENVIRONMENT}-api-specific
-        - secretRef:
-            name: ${ENVIRONMENT}-pcapi
-        command:
-          - "/bin/bash"
-        args:
-          - "-c"
-          - |
-            set -e
-            alembic upgrade post@head
-            flask clean_data
+        - name: pcapi
+          image: ${IMAGE}
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 1024Mi
+              cpu: 0.5
+            limits:
+              memory: 1024Mi
+          envFrom:
+            - configMapRef:
+                name: ${ENVIRONMENT}-pcapi-api
+                optional: true
+            - configMapRef:
+                name: ${ENVIRONMENT}-pcapi
+                optional: true
+            - configMapRef:
+                name: ${ENVIRONMENT}-api-specific
+            - secretRef:
+                name: ${ENVIRONMENT}
+          command:
+            - "/bin/bash"
+          args:
+            - "-c"
+            - |
+              set -e
+              alembic upgrade post@head
+              flask clean_data
       restartPolicy: Never
