@@ -54,8 +54,6 @@ runs:
         check_file() {
             file="$1"
 
-            echo $(sha256sum $file | awk '{ print $1 }')
-
             if [ $(sha256sum $file | awk '{ print $1 }') != "$CHECKSUM" ]; then
                 echo "Invalid checksum. Exiting."
                 rm $file
