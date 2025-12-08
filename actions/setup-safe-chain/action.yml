@@ -108,7 +108,6 @@ runs:
             echo "Running safe-chain $SETUP_CMD $SETUP_ARGS..."
             if ! "$FINAL_FILE" $SETUP_CMD $SETUP_ARGS; then
                 echo "safe-chain was installed but setup encountered issues."
-                echo "You can run 'safe-chain $SETUP_CMD $SETUP_ARGS' manually later."
             fi
         }
         main "$@"
