@@ -4,10 +4,12 @@ inputs:
   version:
     type: string
     required: true
+    default: "1.2.2"
   checksum:
     type: string
     required: true
     description: "SHA256 hash of the safe-chain binary file."
+    default: "db58cbdebb132f3172cd872ef1a3de407cd59d9fe16ce058f87ab43a4b49f799"
 
 runs:
   using: "composite"
