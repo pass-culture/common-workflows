@@ -28,9 +28,12 @@ runs:
         REPO_URL="https://github.com/AikidoSec/safe-chain"
 
         error() {
-          echo "$1"
-          echo "Contact cybersecurite@passculture.app to investigate. Error code $2."
-          exit $2
+          msg="$1"
+          exit_code=$2
+
+          echo "$msg"
+          echo "Contact cybersecurite@passculture.app to investigate. Error code $error."
+          exit $error
         }
 
         # Detect OS
