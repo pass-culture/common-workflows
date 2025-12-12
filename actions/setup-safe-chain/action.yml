@@ -32,8 +32,8 @@ runs:
           exit_code=$2
 
           echo "$msg"
-          echo "Contact cybersecurite@passculture.app to investigate. Error code $error."
-          exit $error
+          echo "Contact cybersecurite@passculture.app to investigate. Error code $exit_code."
+          exit $exit_code
         }
 
         # Detect OS
@@ -122,7 +122,7 @@ runs:
 
             # Add config to remove cooldown (temp fix to avoid break CI)
             mkdir ~/.aikido || error "Could not create dir ~/.aikido" 108
-            echo '{"minimumPackageAgeHours": 0}' > ./.aikido/config.json || error "Could not create config file." 109
+            echo '{"minimumPackageAgeHours": 0}' > ~/.aikido/config.json || error "Could not create config file." 109
         }
         main "$@"
       env:
