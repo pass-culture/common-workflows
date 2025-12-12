@@ -15,11 +15,7 @@ steps:
     with:
         node-version: "22"
 
-    - name: setup safe-chain
-    uses: pass-culture/common-workflows/actions/setup-safe-chain@safe-chain-action
-    with:
-        version: "1.2.2"
-        checksum: "db58cbdebb132f3172cd872ef1a3de407cd59d9fe16ce058f87ab43a4b49f799"
+    - uses: pass-culture/common-workflows/actions/setup-safe-chain@safe-chain-setup/v1.0.0
 
     - name: Install dependencies
     run: npm install safe-chain-test
@@ -27,5 +23,5 @@ steps:
 
 ## Inputs
 
-### `version` - string
-### `checksum` - string
+### `version` - string, optionnel
+### `checksum` - string, optionnel
