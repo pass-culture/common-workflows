@@ -119,6 +119,10 @@ runs:
             if ! "$FINAL_FILE" $SETUP_CMD $SETUP_ARGS; then
                 error "safe-chain was installed but setup encountered issues." 107
             fi
+
+            # Add config to remove cooldown (temp fix to avoid break CI)
+            mkdir ~/.aikido || error "Could not create dir ~/.aikido" 108
+            echo '{"minimumPackageAgeHours": 0}' > ./.aikido/config.json || error "Could not create config file." 109
         }
         main "$@"
       env:
