@@ -33,7 +33,7 @@ runs:
           exit_code=$2
 
           echo "$msg"
-          echo "Contact cybersecurite@passculture.app to investigate. Error code $exit_code."
+          echo "Contact cybersecurity team to investigate. Error code $exit_code."
           exit $exit_code
         }
 
