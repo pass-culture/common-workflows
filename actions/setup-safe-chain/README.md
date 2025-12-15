@@ -23,5 +23,5 @@ steps:
 
 ## Inputs
 
-### `version` - string, optionnel
-### `checksum` - string, optionnel
+### `version` - string, optional
+### `checksum` - string, optional
