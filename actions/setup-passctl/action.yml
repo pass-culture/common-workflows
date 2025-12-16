@@ -1,0 +1,13 @@
+name: setup-passctl
+description: "Action to setup passctl"
+inputs:
+  token:
+    description: "Github token to download the tool"
+    required: true
+  version:
+    description: "passctl version"
+    default: "v0.1.0"
+    required: false
+runs:
+  using: "node20"
+  main: "dist/index.js"
