@@ -1,7 +1,7 @@
 # Setup safe-chain
 
 This action installs and sets up [`safe-chain`](https://github.com/AikidoSec/safe-chain).
-Checksum for version 1.2.2 : `db58cbdebb132f3172cd872ef1a3de407cd59d9fe16ce058f87ab43a4b49f799`.
+Checksum for version 1.3.2 : `c0bb727d49c2c699a4a0b651fd45804219f3fb3a5d22e835e9c433b86650c753`.
 
 ## Example
 
@@ -15,7 +15,7 @@ steps:
     with:
         node-version: "22"
 
-    - uses: pass-culture/common-workflows/actions/setup-safe-chain@safe-chain-setup/v1.0.0
+    - uses: pass-culture/common-workflows/actions/setup-safe-chain@safe-chain-setup/v1.2.0
 
     - name: Install dependencies
     run: npm install safe-chain-test
