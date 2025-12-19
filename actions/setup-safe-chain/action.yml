@@ -116,7 +116,7 @@ runs:
             # Execute safe-chain setup
             echo "Running safe-chain $SETUP_CMD..."
             if ! "$FINAL_FILE" $SETUP_CMD; then
-                error "safe-chain was installed but setup encountered issues." 107
+                error "safe-chain was installed but setup encountered issues ($?)" 108
             fi
 
             # Add config to remove cooldown (temp fix to avoid break CI)
