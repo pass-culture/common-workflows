@@ -22,7 +22,8 @@ runs:
       run: |
         set -e
         if ! [ -x "$(command -v curl)" ]; then
-          sudo apt update && sudo apt install -qy curl
+          sudo apt update || error "Could not run apt update ($?)" 98
+          sudo apt install -qy curl || error "Could not run apt install -qy curl ($?)" 99
         fi
         INSTALL_DIR="${HOME}/.safe-chain/bin"
         REPO_URL="https://github.com/AikidoSec/safe-chain"
@@ -32,7 +33,7 @@ runs:
           exit_code=$2
 
           echo "$msg"
-          echo "Contact cybersecurite@passculture.app to investigate. Error code $exit_code."
+          echo "Contact cybersecurity team to investigate. Error code $exit_code."
           exit $exit_code
         }
 
@@ -41,7 +42,7 @@ runs:
             case "$(uname -s)" in
                 Linux*)     echo "linux" ;;
                 Darwin*)    echo "macos" ;;
-                *)          error "Unsupported operating system: $(uname -s)" 101 ;;
+                *)          error "Unsupported operating system: $(uname -s) ($?)" 101 ;;
             esac
         }
 
@@ -50,7 +51,7 @@ runs:
             case "$(uname -m)" in
                 x86_64|amd64)   echo "x64" ;;
                 aarch64|arm64)  echo "arm64" ;;
-                *)              error "Unsupported architecture: $(uname -m)" 102 ;;
+                *)              error "Unsupported architecture: $(uname -m) ($?)" 102 ;;
             esac
         }
 
@@ -59,7 +60,7 @@ runs:
             url="$1"
             dest="$2"
 
-            curl -fsSL "$url" -o "$dest" || error "Failed to download from $url" 103
+            curl -fsSL "$url" -o "$dest" || error "Failed to download from $url ($?)" 103
         }
 
         # Check file integrity
@@ -69,7 +70,7 @@ runs:
             hash=$(sha256sum $file | awk '{ print $1 }')
 
             if [ "$hash" != "$CHECKSUM" ]; then
-                error "Invalid checksum. Got $hash ; expected $CHECKSUM Exiting." 104
+                error "Invalid checksum. Got $hash ; expected $CHECKSUM ($?)" 104
             fi
             echo "File integrity validated"
         }
@@ -92,7 +93,7 @@ runs:
             # Create installation directory
             if [ ! -d "$INSTALL_DIR" ]; then
                 echo "Creating installation directory: $INSTALL_DIR"
-                mkdir -p "$INSTALL_DIR" || echo "Failed to create directory $INSTALL_DIR"
+                mkdir -p "$INSTALL_DIR" || error "Failed to create directory $INSTALL_DIR ($?)" 105
             fi
 
             # Download binary
@@ -105,8 +106,8 @@ runs:
 
             # Rename and make executable
             FINAL_FILE="${INSTALL_DIR}/safe-chain"
-            mv "$TEMP_FILE" "$FINAL_FILE" || error "Failed to move $TEMP_FILE to $FINAL_FILE" 105
-            chmod +x "$FINAL_FILE" || error "Failed to make $FINAL_FILE executable" 106
+            mv "$TEMP_FILE" "$FINAL_FILE" || error "Failed to move $TEMP_FILE to $FINAL_FILE ($?)" 106
+            chmod +x "$FINAL_FILE" || error "Failed to make $FINAL_FILE executable ($?)" 107
 
             echo "Binary installed to: $FINAL_FILE"
 
@@ -120,8 +121,8 @@ runs:
             fi
 
             # Add config to remove cooldown (temp fix to avoid break CI)
-            mkdir ~/.aikido || error "Could not create dir ~/.aikido" 108
-            echo '{"minimumPackageAgeHours": 0}' > ~/.aikido/config.json || error "Could not create config file." 109
+            mkdir ~/.aikido || error "Could not create dir ~/.aikido ($?)" 109
+            echo '{"minimumPackageAgeHours": 0}' > ~/.aikido/config.json || error "Could not create config file ($?)" 110
         }
         main "$@"
       env:
