@@ -112,11 +112,10 @@ runs:
 
             # Build setup command based on arguments
             SETUP_CMD="setup-ci"
-            SETUP_ARGS="--include-python"
 
             # Execute safe-chain setup
-            echo "Running safe-chain $SETUP_CMD $SETUP_ARGS..."
-            if ! "$FINAL_FILE" $SETUP_CMD $SETUP_ARGS; then
+            echo "Running safe-chain $SETUP_CMD..."
+            if ! "$FINAL_FILE" $SETUP_CMD; then
                 error "safe-chain was installed but setup encountered issues." 107
             fi
 
