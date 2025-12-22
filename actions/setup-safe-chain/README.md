@@ -13,8 +13,6 @@ steps:
 
     - name: Setup Node.js
     uses: actions/setup-node@v4
-    with:
-        node-version: "22"
 
     - uses: pass-culture/common-workflows/actions/setup-safe-chain@safe-chain-setup/v1.3.0
 
@@ -25,4 +23,5 @@ steps:
 ## Inputs
 
 ### `version` - string, optional
-### `checksum` - string, optional
+### `checksum-linux-x64` - string, optional
+### `checksum-macos-arm64` - string, optional
