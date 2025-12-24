@@ -74,9 +74,16 @@ runs:
             file="$1"
             arch="$2"
 
+            if [ "$arch" == "linux-x64" ]; then
+                $chksm = $CHECKSUM-linux-x64
+            elif [ "$arch" == "macos-arm64" ]; then
+                $chksm = $CHECKSUM-macos-arm64
+            else
+                error "Unsupported architecture: $arch ($?)" 102
+
             hash=$(sha256sum $file | awk '{ print $1 }')
-            if [ "$hash" != "$CHECKSUM-$arch" ]; then
-                error "Invalid checksum. Got $hash ; expected $CHECKSUM-$arch ($?)" 104
+            if [ "$hash" != "$chksm" ]; then
+                error "Invalid checksum. Got $hash ; expected $chksm ($?)" 104
             fi
             echo "File integrity validated"
         }
