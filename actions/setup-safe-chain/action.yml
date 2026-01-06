@@ -80,6 +80,7 @@ runs:
                 $chksm = $CHECKSUM-macos-arm64
             else
                 error "Unsupported architecture: $arch ($?)" 102
+            fi
 
             hash=$(sha256sum $file | awk '{ print $1 }')
             if [ "$hash" != "$chksm" ]; then
