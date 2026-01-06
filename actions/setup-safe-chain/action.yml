@@ -75,9 +75,9 @@ runs:
             arch="$2"
 
             if [ "$arch" == "linux-x64" ]; then
-                chksm = $CHECKSUM-linux-x64
+                chksm=$CHECKSUM-linux-x64
             elif [ "$arch" == "macos-arm64" ]; then
-                chksm = $CHECKSUM-macos-arm64
+                chksm=$CHECKSUM-macos-arm64
             else
                 error "Unsupported architecture: $arch ($?)" 102
             fi
