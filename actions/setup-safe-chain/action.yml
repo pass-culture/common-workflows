@@ -75,13 +75,15 @@ runs:
             arch="$2"
 
             if [ "$arch" == "linux-x64" ]; then
-                $chksm = $CHECKSUM-linux-x64
+                chksm="${chksm_linux_x64}"
+                hash=$(sha256sum $file | awk '{ print $1 }')
             elif [ "$arch" == "macos-arm64" ]; then
-                $chksm = $CHECKSUM-macos-arm64
+                chksm="${chksm_macos_arm64}"
+                hash=$(shasum -a 256 $file | awk '{ print $1 }')
             else
                 error "Unsupported architecture: $arch ($?)" 102
+            fi
 
-            hash=$(sha256sum $file | awk '{ print $1 }')
             if [ "$hash" != "$chksm" ]; then
                 error "Invalid checksum. Got $hash ; expected $chksm ($?)" 104
             fi
@@ -140,5 +142,5 @@ runs:
         main "$@"
       env:
         VERSION: ${{ inputs.version }}
-        CHECKSUM-linux-x64: ${{ inputs.checksum-linux-x64 }}
-        CHECKSUM-macos-arm64: ${{ inputs.checksum-macos-arm64 }}
+        chksm_linux_x64: ${{ inputs.checksum-linux-x64 }}
+        chksm_macos_arm64: ${{ inputs.checksum-macos-arm64 }}
