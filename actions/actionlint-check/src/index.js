@@ -51,7 +51,7 @@ async function run() {
   const token = getInput("token")
   const path = await download(version, token)
   await install(path)
-  await exec("./actionlint", ["./.github/workflows/*.yml"]);
+  await exec("./actionlint");
 }
 
 run();
