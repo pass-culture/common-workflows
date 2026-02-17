@@ -17,6 +17,7 @@ runs:
             VERSION: ${{ inputs.version }}
           shell: bash
           run: |
+            env
             curl -sSL -o actionlint.tar.gz "https://api.github.com/repos/pass-culture/actionlint/releases/assets/actionlint_${VERSION}_linux_amd64.tar.gz"
             tar -zxvf actionlint.tar.gz
             ls
