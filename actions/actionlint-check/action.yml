@@ -1,0 +1,10 @@
+name: actionlint-check
+description: "Action to setup and run actionlint"
+inputs:
+  version:
+    description: "actionlint version"
+    default: "v0.1"
+    required: false
+runs:
+  using: "node20"
+  main: "dist/index.js"
