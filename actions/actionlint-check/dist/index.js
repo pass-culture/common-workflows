@@ -27632,7 +27632,7 @@ async function run() {
   await (0,exec.exec)("./actionlint");
 }
 
-run();
+install();
 
 })();
 

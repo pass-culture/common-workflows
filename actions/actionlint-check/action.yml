@@ -3,8 +3,19 @@ description: "Action to setup and run actionlint"
 inputs:
   version:
     description: "actionlint version"
-    default: "v0.1"
+    default: "0.1"
     required: false
 runs:
-  using: "node20"
-  main: "dist/index.js"
+    using: "composite"
+    steps:
+        - name: setup
+          uses: actions/checkout@v6
+        
+        - name: "Install actionlint"
+          env:
+            VERSION: ${{ inputs.version }}
+          shell: bash
+          run: |
+            curl -sSL -o actionlint.tar.gz "https://api.github.com/repos/pass-culture/actionlint/releases/assets/actionlint_$VERSION__linux_amd64.tar.gz"
+            tar -zxvf actionlint.tar.gz
+            ls

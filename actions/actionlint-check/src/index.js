@@ -54,4 +54,4 @@ async function run() {
   await exec("./actionlint");
 }
 
-run();
+install();
