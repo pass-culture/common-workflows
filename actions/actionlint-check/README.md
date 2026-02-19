@@ -1,4 +1,4 @@
-# Setup safe-chain
+# Setup actionlint
 
 This action installs and runs [`actionlint`](https://github.com/pass-culture/actionlint).
 
