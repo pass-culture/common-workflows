@@ -4,17 +4,17 @@ inputs:
   version:
     type: string
     required: true
-    default: "1.3.3"
+    default: "1.4.4"
   checksum-linux-x64:
     type: string
     required: true
     description: "SHA256 hash of the safe-chain binary file for linux-x64."
-    default: "ba57cba81e13a920a877bc5767c38494578d1e75cf565f87138c81916a67cc31"
+    default: "8826980b5d6ce7bb17cce3f9803654eaa848c43d0063b90a53448be57a9543b1"
   checksum-macos-arm64:
     type: string
     required: true
     description: "SHA256 hash of the safe-chain binary file for macos-arm64."
-    default: "e6ab4f595164f3423aae537bebd4b838d4db761b5f668997d32bd7319194724c"
+    default: "e8b8be838b1a76f3f80e32b4cf088299ca02759bf167433ce20f8fd7524380c5"
 
 
 runs:
