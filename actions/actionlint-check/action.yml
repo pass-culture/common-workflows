@@ -15,8 +15,8 @@ runs:
         - name: "Install actionlint"
           run: |
             curl -sSL -o actionlint.tar.gz "https://github.com/pass-culture/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
-            tar -zxvf actionlint.tar.gz
-            ls
+            tar -zxvf actionlint.tar.gz && rm actionlint.tar.gz
+            ./actionlint ./.github/workflows/*.yml
           shell: bash
           env:
             VERSION: ${{ inputs.version }}
