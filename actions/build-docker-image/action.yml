@@ -15,15 +15,19 @@ inputs:
     description: context to build the dockerfile in
     default: "."
     required: false
+  sign:
+    description: sign image or not, has no effect if push is false
+    default: "true"
+    required: false
   cosign_kms_key:
     description: kms key used to sign
-    required: true
+    required: false
   gcp_workload_identity_provider:
     description: workload identity provider
-    required: true
+    required: false
   artifact_registry_service_account:
     description: service account to use
-    required: true
+    required: false
   docker_registry_project_id:
     description: project id for artifact registry
     default: passculture-infra-prod
@@ -53,23 +57,6 @@ runs:
       id: vars
       run: echo "DOCKER_REPO=${{ inputs.docker_registry_region }}-docker.pkg.dev/${{ inputs.docker_registry_project_id }}/${{ inputs.docker_registry_repository }}" | tee -a ${GITHUB_ENV}
 
-    - id: openid-auth
-      name: "OpenID Connect Authentication"
-      uses: "google-github-actions/auth@v2"
-      with:
-        create_credentials_file: true
-        token_format: "access_token"
-        workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
-        service_account: ${{ inputs.artifact_registry_service_account }}
-
-    - id: docker-login
-      uses: docker/login-action@v3.0.0
-      name: "Docker login"
-      with:
-        registry: "${{ inputs.docker_registry_region }}-docker.pkg.dev"
-        username: "oauth2accesstoken"
-        password: "${{ steps.openid-auth.outputs.access_token }}"
-
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.5.0
 
@@ -88,6 +75,25 @@ runs:
         HASH="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
         echo "HASH=${HASH}" | tee -a ${GITHUB_ENV}
 
+    - id: openid-auth
+      name: "OpenID Connect Authentication"
+      if: inputs.push == 'true' || inputs.sign == 'true'
+      uses: "google-github-actions/auth@v2"
+      with:
+        create_credentials_file: true
+        token_format: "access_token"
+        workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+        service_account: ${{ inputs.artifact_registry_service_account }}
+
+    - id: docker-login
+      uses: docker/login-action@v3.0.0
+      if: inputs.push == 'true'
+      name: "Docker login"
+      with:
+        registry: "${{ inputs.docker_registry_region }}-docker.pkg.dev"
+        username: "oauth2accesstoken"
+        password: "${{ steps.openid-auth.outputs.access_token }}"
+
     - name: "Build and push ${{ inputs.image }} image"
       id: docker-push-action
       uses: docker/build-push-action@v5.1.0
@@ -100,4 +106,5 @@ runs:
 
     - name: Sign image with a kms key
       shell: bash
+      if: inputs.push == 'true' && inputs.sign == 'true'
       run: cosign sign --tlog-upload=false --key gcpkms://${{ inputs.COSIGN_KMS_KEY }} ${{ env.DOCKER_REPO }}/${{ inputs.image }}@${{ steps.docker-push-action.outputs.digest }}
