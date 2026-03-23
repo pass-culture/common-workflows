@@ -47,10 +47,6 @@ inputs:
     description: "Push manifests to target_branch"
     type: boolean
     default: true
-  scan_manifests:
-    description: "Perform trivy IaC analysis of rendered manifests"
-    type: boolean
-    default: false
   diff:
     description: "Perform diff operation and report back to PR (must be used with PR events)"
     type: boolean
@@ -69,10 +65,6 @@ inputs:
     required: false
   resource_label:
     description: "label to apply to all resources created"
-    type: string
-  trivyignores:
-    description: "Path to a trivyignore file"
-    default: ".trivyignore"
     type: string
 
 runs:
@@ -165,18 +157,6 @@ runs:
         ADDITIONAL_ARGS: ${{ inputs.additional_args }}
         PASSCULTURE_USERNAME: "oauth2accesstoken"
         PASSCULTURE_PASSWORD: ${{ steps.connect-registry.outputs.access_token }}
-
-    - name: "Scan generated manifests"
-      id: scan-manifests
-      if: ${{ inputs.scan_manifests == 'true' }}
-      uses: aquasecurity/trivy-action@0.24.0
-      with:
-        scan-type: config
-        hide-progress: true
-        format: table
-        output: scan_output.txt
-        severity: "CRITICAL,HIGH"
-        trivyignores: "${{ inputs.trivyignores }}"
 
     - name: "Set destination branch"
       shell: bash
