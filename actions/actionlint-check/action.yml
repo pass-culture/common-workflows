@@ -3,21 +3,16 @@ description: "Action to setup and run actionlint"
 inputs:
   version:
     description: "actionlint version"
-    default: "0.1"
+    default: "0.2"
     required: false
-
 runs:
-    using: "composite"
-    steps:
-        - name: setup
-          uses: actions/checkout@v6
-        
-        - name: "Install actionlint"
-          run: |
-            curl -sSL -o actionlint.tar.gz "https://github.com/pass-culture/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
-            tar -zxvf actionlint.tar.gz && rm actionlint.tar.gz
-            ./actionlint ./.github/workflows/*.yml
-          shell: bash
-          env:
-            VERSION: ${{ inputs.version }}
-          
+  using: "composite"
+  steps:
+    - name: "Install actionlint"
+      run: |
+        curl -sSL -o actionlint.tar.gz "https://github.com/pass-culture/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
+        tar -zxvf actionlint.tar.gz && rm actionlint.tar.gz
+        ./actionlint ./.github/workflows/*.yml
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
