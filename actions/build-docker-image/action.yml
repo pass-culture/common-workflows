@@ -103,6 +103,8 @@ runs:
         tags: ${{ env.DOCKER_REPO }}/${{ inputs.image }}:${{ env.SANITIZED_BRANCH_NAME }},${{ env.DOCKER_REPO }}/${{ inputs.image }}:${{ env.HASH }}
         context: ${{ inputs.context }}
         secrets: ${{ inputs.build_secrets }}
+        cache-from: type=registry,ref=${{ env.DOCKER_REPO }}/${{ inputs.image }}
+        cache-to: type=inline
 
     - name: Sign image with a kms key
       shell: bash
