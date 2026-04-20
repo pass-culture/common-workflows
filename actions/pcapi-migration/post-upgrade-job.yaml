@@ -4,7 +4,7 @@ metadata:
   name: post-upgrade-${DATE}
 spec:
   backoffLimit: 0
-  ttlSecondsAfterFinished: 604800
+  ttlSecondsAfterFinished: 86400
   template:
     spec:
       activeDeadlineSeconds: 10800
