@@ -14,7 +14,7 @@ steps:
     - name: Setup Node.js
     uses: actions/setup-node@v4
 
-    - uses: pass-culture/common-workflows/actions/setup-safe-chain@main
+    - uses: pass-culture/common-workflows/actions/setup-safe-chain@<commit-hash>
 
     - name: Install dependencies
     run: npm install safe-chain-test
