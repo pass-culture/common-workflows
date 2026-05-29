@@ -19,7 +19,7 @@ jobs:
           curl -sSL -o actionlint.tar.gz "https://github.com/pass-culture/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
           tar -zxvf actionlint.tar.gz && rm actionlint.tar.gz
           ls -l ./actions
-          ./actionlint ./actions/*.yml
+          ./actionlint ./actions/*/*.yml
         shell: bash
         env:
           VERSION: "0.2"
