@@ -35,19 +35,22 @@ runs:
         export ARCH=$(dpkg --print-architecture)
         asset_id=$(curl -s -L \
         -H "Accept: application/vnd.github+json" \
-        -H "Authorization: Bearer ${{ inputs.api_token_github }}" \
+        -H "Authorization: Bearer $API_TOKEN_GITHUB" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        https://api.github.com/repos/pass-culture/pc-firestore-cli/releases | jq -r '.[].assets[] | select(.name=="pc-firestore-cli_${{ inputs.pc_firestore_version }}_linux_'${ARCH}'.tar.gz") | .id')
+        https://api.github.com/repos/pass-culture/pc-firestore-cli/releases | jq -r '.[].assets[] | select(.name=="pc-firestore-cli_$PC_FIRESTORE_VERSION_linux_'${ARCH}'.tar.gz") | .id')
         curl -L \
         -H "Accept: application/octet-stream" \
-        -H "Authorization: Bearer ${{ inputs.api_token_github }}" \
+        -H "Authorization: Bearer $API_TOKEN_GITHUB" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         https://api.github.com/repos/pass-culture/pc-firestore-cli/releases/assets/$asset_id -o pc-firestore-cli.tar.gz
         tar -xzvf pc-firestore-cli.tar.gz
         chmod +x pc-firestore-cli
         mkdir -p bin
         mv pc-firestore-cli bin/pc-firestore-cli
-        echo "$PWD/bin" >> $GITHUB_PATH
+        echo "$PWD/bin" >> "$GITHUB_PATH"
+      env:
+        API_TOKEN_GITHUB: ${{ inputs.api_token_github }}
+        PC_FIRESTORE_VERSION: ${{ inputs.pc_firestore_version }}
 
     - name: "Set up Cloud SDK"
       uses: "google-github-actions/setup-gcloud@v2"
@@ -57,4 +60,8 @@ runs:
     - name: "Connect to cluster"
       shell: bash
       run: |
-        ${{ github.workspace }}/pc-k8s-connect/pc-k8s-connect -s ${{ inputs.cluster_scope }} -e ${{ inputs.cluster_environment }}
+        $WORKSPACE/pc-k8s-connect/pc-k8s-connect -s "$CLUSTER_SCOPE" -e "$CLUSTER_ENVIRONMENT"
+      env:
+        WORKSPACE: ${{ github.workspace }}
+        CLUSTER_SCOPE: ${{ inputs.cluster_scope }}
+        CLUSTER_ENVIRONMENT: ${{ inputs.cluster_environment }}

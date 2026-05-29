@@ -21,47 +21,57 @@ runs:
       shell: bash
       run: |
         set -e
-        VERSION="${{ inputs.app_version }}"
-        export ENVIRONMENT="${{ inputs.environment }}"
-        IMAGE="${{ inputs.artifact_registry }}/pcapi"
+        VERSION="$APP_VERSION"
+        export ENVIRONMENT="$ENVIRONMENT"
+        IMAGE="$ARTIFACT_REGISTRY/pcapi"
         export IMAGE="${IMAGE}:${VERSION}"
-        export DATE=$(date +"%Y-%m-%d--%H-%M-%S")
-        JOB_NAME=pre-upgrade-${DATE}
-        envsubst < ${{ github.action_path }}/pre-upgrade-job.yaml | kubectl -n ${{ inputs.environment }} apply -f -
+        export DATE="$(date +"%Y-%m-%d--%H-%M-%S")"
+        JOB_NAME="pre-upgrade-${DATE}"
+        envsubst < "$ACTION_PATH/pre-upgrade-job.yaml" | kubectl -n "$ENVIRONMENT" apply -f -
         # kubectl logs returns 0 if pod is pending because of lack of resource so we use a more elaborate condition
-        kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=300s
+        kubectl wait -n "$ENVIRONMENT" --for=jsonpath='{.status.ready}'=1 "jobs/${JOB_NAME}" --timeout=300s
         # Next lines assume that job's backoffLimit is 0
-        kubectl logs -n ${{ inputs.environment }} -f jobs/${JOB_NAME}
-        kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} --timeout=120s || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} --timeout=120s # Sanity check that the job is over
-        failure=$(kubectl get -n ${{ inputs.environment }} jobs/${JOB_NAME} -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}') # Did the job fail or not so we can give correct return code
+        kubectl logs -n "$ENVIRONMENT" -f "jobs/${JOB_NAME}"
+        kubectl wait -n "$ENVIRONMENT" --for=condition=complete "jobs/${JOB_NAME}" --timeout=120s || kubectl wait -n "$ENVIRONMENT" --for=condition=failed "jobs/${JOB_NAME}" --timeout=120s # Sanity check that the job is over
+        failure=$(kubectl get -n "$ENVIRONMENT" "jobs/${JOB_NAME}" -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}') # Did the job fail or not so we can give correct return code
         if [[ "$failure" == "True" ]]
         then
           exit 1
         else
           exit 0
         fi
+      env:
+        APP_VERSION: ${{ inputs.app_version }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        ARTIFACT_REGISTRY: ${{ inputs.artifact_registry }}
+        ACTION_PATH: ${{ github.action_path }}
 
     - name: "Play post-migrations"
       if: inputs.migration_type == 'post'
       shell: bash
       run: |
         set -e
-        VERSION="${{ inputs.app_version }}"
-        export ENVIRONMENT="${{ inputs.environment }}"
-        IMAGE="${{ inputs.artifact_registry }}/pcapi"
+        VERSION="$APP_VERSION"
+        export ENVIRONMENT="$ENVIRONMENT"
+        IMAGE="$ARTIFACT_REGISTRY/pcapi"
         export IMAGE="${IMAGE}:${VERSION}"
-        export DATE=$(date +"%Y-%m-%d--%H-%M-%S")
-        JOB_NAME=post-upgrade-${DATE}
-        envsubst < ${{ github.action_path }}/post-upgrade-job.yaml | kubectl -n ${{ inputs.environment }} apply -f -
+        export DATE="$(date +"%Y-%m-%d--%H-%M-%S")"
+        JOB_NAME="post-upgrade-${DATE}"
+        envsubst < "$ACTION_PATH/post-upgrade-job.yaml" | kubectl -n "$ENVIRONMENT" apply -f -
         # kubectl logs returns 0 if pod is pending because of lack of resource so we use a more elaborate condition
-        kubectl wait -n ${{ inputs.environment }} --for=jsonpath='{.status.ready}'=1 jobs/${JOB_NAME} --timeout=300s
+        kubectl wait -n "$ENVIRONMENT" --for=jsonpath='{.status.ready}'=1 "jobs/${JOB_NAME}" --timeout=300s
         # Next lines assume that job's backoffLimit is 0
-        kubectl logs -n ${{ inputs.environment }} -f jobs/${JOB_NAME}
-        kubectl wait -n ${{ inputs.environment }} --for=condition=complete jobs/${JOB_NAME} --timeout=120s || kubectl wait -n ${{ inputs.environment }} --for=condition=failed jobs/${JOB_NAME} --timeout=120s # Sanity check that the job is over
-        failure=$(kubectl get -n ${{ inputs.environment }} jobs/${JOB_NAME} -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}') # Did the job fail or not so we can give correct return code
+        kubectl logs -n "$ENVIRONMENT" -f "jobs/${JOB_NAME}"
+        kubectl wait -n "$ENVIRONMENT" --for=condition=complete "jobs/${JOB_NAME}" --timeout=120s || kubectl wait -n "$ENVIRONMENT" --for=condition=failed "jobs/${JOB_NAME}" --timeout=120s # Sanity check that the job is over
+        failure=$(kubectl get -n "$ENVIRONMENT" "jobs/${JOB_NAME}" -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}') # Did the job fail or not so we can give correct return code
         if [[ "$failure" == "True" ]]
         then
           exit 1
         else
           exit 0
         fi
+      env:
+        APP_VERSION: ${{ inputs.app_version }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        ARTIFACT_REGISTRY: ${{ inputs.artifact_registry }}
+        ACTION_PATH: ${{ github.action_path }}

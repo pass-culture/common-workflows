@@ -55,7 +55,11 @@ runs:
     - name: Output variables
       shell: bash
       id: vars
-      run: echo "DOCKER_REPO=${{ inputs.docker_registry_region }}-docker.pkg.dev/${{ inputs.docker_registry_project_id }}/${{ inputs.docker_registry_repository }}" | tee -a ${GITHUB_ENV}
+      run: echo "DOCKER_REPO=$DOCKER_REGISTRY_REGION-docker.pkg.dev/$DOCKER_REGISTRY_PROJECT_ID/$DOCKER_REGISTRY_REPOSITORY" | tee -a "${GITHUB_ENV}"
+      env:
+        DOCKER_REGISTRY_REGION: ${{ inputs.docker_registry_region }}
+        DOCKER_REGISTRY_PROJECT_ID: ${{ inputs.docker_registry_project_id }}
+        DOCKER_REGISTRY_REPOSITORY: ${{ inputs.docker_registry_repository }}
 
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.5.0
@@ -66,14 +70,14 @@ runs:
       shell: bash
       run: |
         BRANCH_NAME="${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}"
-        echo "SANITIZED_BRANCH_NAME=${BRANCH_NAME//\//-}" | tee -a ${GITHUB_ENV}
+        echo "SANITIZED_BRANCH_NAME=${BRANCH_NAME//\//-}" | tee -a "${GITHUB_ENV}"
 
     - name: Get commit hash
       id: get-commit-hash
       shell: bash
       run: |
         HASH="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
-        echo "HASH=${HASH}" | tee -a ${GITHUB_ENV}
+        echo "HASH=${HASH}" | tee -a "${GITHUB_ENV}"
 
     - id: openid-auth
       name: "OpenID Connect Authentication"
@@ -107,4 +111,10 @@ runs:
     - name: Sign image with a kms key
       shell: bash
       if: inputs.push == 'true' && inputs.sign == 'true'
-      run: cosign sign --tlog-upload=false --key gcpkms://${{ inputs.COSIGN_KMS_KEY }} ${{ env.DOCKER_REPO }}/${{ inputs.image }}@${{ steps.docker-push-action.outputs.digest }}
+      run: cosign sign --tlog-upload=false --key "gcpkms://$COSIGN_KMS_KEY" "$DOCKER_REPO/$IMAGE@$DOCKER_PUSH_ACTION"
+      env:
+        COSIGN_KMS_KEY: ${{ inputs.COSIGN_KMS_KEY }}
+        DOCKER_REPO: ${{ env.DOCKER_REPO }}
+        IMAGE: ${{ inputs.image }}
+        DOCKER_PUSH_ACTION: ${{ steps.docker-push-action.outputs.digest }}
+

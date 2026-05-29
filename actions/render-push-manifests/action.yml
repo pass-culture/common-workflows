@@ -115,17 +115,17 @@ runs:
       run: |
         set +e
         output_dir_tpl=""
-        if [ ${{ inputs.is_pull_request }} = true ]; then
-          output_dir_tpl="${{ github.workspace }}/rendered-manifests/pcapi-pr-${{ inputs.resource_label }}"
+        if [ $IS_PULL_REQUEST = true ]; then
+          output_dir_tpl="$WORKSPACE/rendered-manifests/pcapi-pr-$RESOURCE_LABEL"
         else
           output_dir_tpl="{{ .OutputDir }}"
         fi
-        if [ -f "${{ inputs.helmfile_path }}/helmfile.yaml.gotmpl" ]; then
-          helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml.gotmpl -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
+        if [ -f "$HELMFILE_PATH/helmfile.yaml.gotmpl" ]; then
+          helmfile_template=(helmfile -f "$HELMFILE_PATH/helmfile.yaml.gotmpl" -e "$ENVIRONMENT" template --output-dir "$WORKSPACE/rendered-manifests/" --output-dir-template "${output_dir_tpl}")
         else
-          helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
+          helmfile_template=(helmfile -f "$HELMFILE_PATH/helmfile.yaml" -e "$ENVIRONMENT" template --output-dir "$WORKSPACE/rendered-manifests/" --output-dir-template "${output_dir_tpl}")
         fi
-        helmfile_template=(helmfile -f ${{ inputs.helmfile_path }}/helmfile.yaml.gotmpl -e $ENVIRONMENT template --output-dir ${{ github.workspace }}/rendered-manifests/ --output-dir-template "${output_dir_tpl}")
+        helmfile_template=(helmfile -f "$HELMFILE_PATH/helmfile.yaml.gotmpl" -e "$ENVIRONMENT" template --output-dir "$WORKSPACE/rendered-manifests/" --output-dir-template "${output_dir_tpl}")
         if [ "${ADDITIONAL_ARGS}" ]; then
           helmfile_template+=(--set $ADDITIONAL_ARGS)
         fi
@@ -136,38 +136,46 @@ runs:
         # Pass pr number to helmfile argument
         # Pass PRO_URL to helmfile argument
         if [ ${{ inputs.is_pull_request }} = true ]; then
-          helmfile_template+=(--state-values-set prId=${{ inputs.resource_label }})
-          helmfile_template+=(--state-values-set proUrl=${{ inputs.pro_url }})
+          helmfile_template+=(--state-values-set prId=$RESOURCE_LABEL)
+          helmfile_template+=(--state-values-set proUrl=$PRO_URL)
         fi
 
         "${helmfile_template[@]}"
         # Get rid of pcapi/templates for pullrequests (for argocd appset path)
-        if [ ${{ inputs.is_pull_request }} = true ]; then
+        if [ $IS_PULL_REQUEST = true ]; then
           mv $output_dir_tpl/pcapi/templates/*.yaml $output_dir_tpl
           # Move redis and pgsql rendered manifests to their respective root folders
-          [[ -d ${{ github.workspace }}/rendered-manifests/redis-pr-${{ inputs.resource_label }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ inputs.resource_label }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/redis-pr-${{ inputs.resource_label }}
-          [[ -d ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ inputs.resource_label }} ]] && echo "Directory ./rendered-manifests/postgresql-pr-${{ inputs.resource_label }} already exists" || mkdir ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ inputs.resource_label }}
-          cp -fr $output_dir_tpl/redis/templates/* ${{ github.workspace }}/rendered-manifests/redis-pr-${{ inputs.resource_label }}
-          cp -fr $output_dir_tpl/postgresql/templates/* ${{ github.workspace }}/rendered-manifests/postgresql-pr-${{ inputs.resource_label }}
+          [[ -d $WORKSPACE/rendered-manifests/redis-pr-$RESOURCE_LABEL ]] && echo "Directory ./rendered-manifests/postgresql-pr-$RESOURCE_LABEL already exists" || mkdir "$WORKSPACE/rendered-manifests/redis-pr-$RESOURCE_LABEL"
+          [[ -d $WORKSPACE/rendered-manifests/postgresql-pr-$RESOURCE_LABEL ]] && echo "Directory ./rendered-manifests/postgresql-pr-$RESOURCE_LABEL already exists" || mkdir "$WORKSPACE/rendered-manifests/postgresql-pr-$RESOURCE_LABEL"
+          cp -fr $output_dir_tpl/redis/templates/* "$WORKSPACE/rendered-manifests/redis-pr-$RESOURCE_LABEL"
+          cp -fr $output_dir_tpl/postgresql/templates/* "$WORKSPACE/rendered-manifests/postgresql-pr-$RESOURCE_LABEL"
         fi
       env:
+        PRO_URL: ${{ inputs.pro_url }}
+        RESOURCE_LABEL: ${{ inputs.resource_label }}
+        WORKSPACE: ${{ github.workspace }}
+        IS_PULL_REQUEST: ${{ inputs.is_pull_request }}
         ENVIRONMENT: ${{ inputs.environment }}
         APP_NAME: ${{ inputs.app_name }}
         APP_VERSION: ${{ inputs.app_version }}
         ADDITIONAL_ARGS: ${{ inputs.additional_args }}
         PASSCULTURE_USERNAME: "oauth2accesstoken"
         PASSCULTURE_PASSWORD: ${{ steps.connect-registry.outputs.access_token }}
+        HELMFILE_PATH: ${{ inputs.helmfile_path }}
 
     - name: "Set destination branch"
       shell: bash
       if: ${{ inputs.push_manifests == 'true' }}
       id: "compute-branch-name"
       run: |
-        if [ -z "${{ inputs.rendered_manifests_target_branch }}" ]; then
-          echo "destination_branch=${{ inputs.app_name }}/${{ inputs.environment }}" | tee -a ${GITHUB_OUTPUT}
+        if [ -z "$RENDERED_MANIFESTS_TARGET_BRANCH" ]; then
+          echo "destination_branch=$APP_NAME/$ENVIRONMENT" | tee -a "${GITHUB_OUTPUT}"
         else
-          echo "destination_branch=${{ inputs.rendered_manifests_target_branch }}" | tee -a ${GITHUB_OUTPUT}
+          echo "destination_branch=$RENDERED_MANIFESTS_TARGET_BRANCH" | tee -a "${GITHUB_OUTPUT}"
         fi
+      env:
+        RENDERED_MANIFESTS_TARGET_BRANCH: ${{ inputs.rendered_manifests_target_branch }}
+        ENVIRONMENT: ${{ inputs.environment }}
 
     # Diff operation
     - name: "Checkout current rendered-manifests branch"
@@ -184,7 +192,9 @@ runs:
       shell: bash
       id: "diff"
       run: |
-        diff -r -u ${{ inputs.helmfile_path }}/rendered-manifests current-rendered-manifests | tee diff_output.txt || true
+        diff -r -u "$HELMFILE_PATH/rendered-manifests current-rendered-manifests" | tee diff_output.txt || true
+      env:
+        HELMFILE_PATH: ${{ inputs.helmfile_path }}
 
     - name: "Concat outputs"
       if: ${{ inputs.diff == 'true' }}
