@@ -54,11 +54,20 @@ runs:
       shell: bash
       run: |
         kubectl config set-context --current --namespace=argocd
-        argocd_app_sync=(argocd app sync ${{ inputs.app_name }} --core --apply-out-of-sync-only --retry-limit ${{ inputs.retry_limit }} --retry-backoff-duration ${{ inputs.retry_backoff_duration }} --retry-backoff-factor ${{ inputs.retry_backoff_factor }} --retry-backoff-max-duration ${{ inputs.retry_backoff_max_duration }} --timeout ${{ inputs.sync_timeout }} ${{ inputs.extra_flags }})
-        if [ ${{ inputs.prune }} == 'true' ]; then
+        argocd_app_sync=(argocd app sync "$APP_NAME" --core --apply-out-of-sync-only --retry-limit "$RETRY_LIMIT" --retry-backoff-duration "$RETRY_BACKOFF_DURATION" --retry-backoff-factor "$RETRY_BACKOFF_FACTOR" --retry-backoff-max-duration "$RETRY_BACKOFF_MAX_DURATION" --timeout "$SYNC_TIMEOUT" ${{ inputs.extra_flags }})
+        if [ "$PRUNE" == 'true' ]; then
           argocd_app_sync+=(--prune)
         fi
         "${argocd_app_sync[@]}"
-        if [ ${{ inputs.argocd_app_wait }} == 'true' ]; then
-          argocd app wait ${{ inputs.app_name }} --core
+        if [ "$ARGOCD_APP_WAIT" == 'true' ]; then
+          argocd app wait "$APP_NAME" --core
         fi
+      env:
+        APP_NAME: ${{ inputs.app_name }}
+        RETRY_LIMIT: ${{ inputs.retry_limit }}
+        RETRY_BACKOFF_DURATION: ${{ inputs.retry_backoff_duration }}
+        RETRY_BACKOFF_FACTOR: ${{ inputs.retry_backoff_factor }}
+        RETRY_BACKOFF_MAX_DURATION: ${{ inputs.retry_backoff_max_duration }}
+        SYNC_TIMEOUT: ${{ inputs.sync_timeout }}
+        PRUNE: ${{ inputs.prune }}
+        ARGOCD_APP_WAIT: ${{ inputs.argocd_app_wait }}
