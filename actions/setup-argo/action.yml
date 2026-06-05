@@ -1,0 +1,14 @@
+name: setup-argo
+description: "Action to setup argo workflows CLI"
+inputs:
+  version:
+    description: "argo workflows version"
+    default: "v4.0.5"
+    required: false
+  checksum:
+    description: "CLI binary checksum"
+    default: "8732418f3bc930e9ea0e2be497270cf245b55c7ac9ae116856743f6bc32733c0"
+    required: false
+runs:
+  using: "node24"
+  main: "dist/index.js"
