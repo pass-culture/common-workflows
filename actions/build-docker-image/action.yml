@@ -50,7 +50,9 @@ runs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2.2.1
       with:
-        driver: docker
+        # docker-container is required (instead of the default "docker" driver)
+        # so BuildKit can export/import the type=gha cache below.
+        driver: docker-container
 
     - name: Output variables
       shell: bash
@@ -107,6 +109,11 @@ runs:
         tags: ${{ env.DOCKER_REPO }}/${{ inputs.image }}:${{ env.SANITIZED_BRANCH_NAME }},${{ env.DOCKER_REPO }}/${{ inputs.image }}:${{ env.HASH }}
         context: ${{ inputs.context }}
         secrets: ${{ inputs.build_secrets }}
+        # GitHub Actions cache backend: reuses layers across runs so unchanged
+        # Dockerfile stages (e.g. apt-get/mise install) aren't rebuilt every time.
+        # Scoped per-image so multiple images in one repo don't clobber each other's cache.
+        cache-from: type=gha,scope=${{ inputs.image }}
+        cache-to: type=gha,mode=max,scope=${{ inputs.image }}
 
     - name: Sign image with a kms key
       shell: bash
