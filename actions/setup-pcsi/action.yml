@@ -1,9 +1,9 @@
-name: Install passtek CLI
-description: An action to install passtek CLI onto the runner
+name: Install pcsi CLI
+description: An action to install pcsi CLI onto the runner
 inputs:
   version:
-    description: The passtek version
-    default: v1.0
+    description: The pcsi version
+    default: v1.3
     required: false
   github_app_id:
     description: The application ID to use to clone passtek
@@ -35,10 +35,10 @@ runs:
     - name: Configure the Git credential helper
       run: gh auth setup-git
       shell: bash
-    - name: Install passtek
+    - name: Install pcsi
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
         GITHUB_TOKEN: ${{ steps.github-token.outputs.token }}
       run: |
-        uv tool install --from "git+https://github.com/pass-culture/passtek@${VERSION}" passtek
+        uv tool install --from "git+https://github.com/pass-culture/pass-culture-si@${VERSION}" pcsi
