@@ -3,7 +3,7 @@ description: An action to install pcsi CLI onto the runner
 inputs:
   version:
     description: The pcsi version
-    default: v1.0
+    default: v1.3
     required: false
   github_app_id:
     description: The application ID to use to clone passtek
