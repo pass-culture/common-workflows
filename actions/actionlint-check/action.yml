@@ -3,7 +3,7 @@ description: "Action to setup and run actionlint"
 inputs:
   version:
     description: "actionlint version"
-    default: "0.2"
+    default: "0.3.0"
     required: false
 runs:
   using: "composite"
