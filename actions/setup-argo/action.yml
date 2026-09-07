@@ -1,6 +1,9 @@
 name: setup-argo
 description: "Action to setup argo workflows CLI"
 inputs:
+  token:
+    description: "Github token to download the tool"
+    required: true
   version:
     description: "argo workflows version"
     default: "v4.0.5"
