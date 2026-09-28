@@ -1,0 +1,15 @@
+name: PoC test
+on: pull_request
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/build-docker-image
+        with:
+          image: poc
+          push: "false"
+          sign: "false"
+      - name: Verify injection
+        run: cat /tmp/pwned || echo "nothing was ejecuted"
