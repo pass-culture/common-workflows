@@ -27574,17 +27574,13 @@ var external_fs_ = __nccwpck_require__(9896);
 ;// CONCATENATED MODULE: ./src/index.js
 
 
-
-
-
-
-
-async function download(version) {
+async function download(version, token) {
   const assetsResponse = await fetch('https://api.github.com/repos/argoproj/argo-workflows/releases', {
     method: 'GET',
     headers: {
       "Accept": 'application/vnd.github+json',
       "X-GitHub-Api-Version": "2022-11-28",
+      "Authorization": `Bearer ${token}`
     },
   });
   if (!assetsResponse.ok) {
@@ -27599,6 +27595,7 @@ async function download(version) {
     headers: {
       "Accept": "application/octet-stream",
       "X-GitHub-Api-Version": "2022-11-28",
+      "Authorization": `Bearer ${token}`
     },
   });
   if (!downloadResponse.ok) {
@@ -27637,7 +27634,8 @@ async function install() {
 
 async function run() {
   const version = (0,core.getInput)("version")
-  await download(version)
+  const token = (0,core.getInput)("token")
+  await download(version, token)
   await install()
   await (0,exec.exec)("argo", ["--help"]);
 }
