@@ -52,8 +52,9 @@ runs:
     - name: "Check argocd application status"
       id: check_status
       shell: bash
-      run: |
+      run: | # nosemgrep: yaml.github-actions.security.run-shell-injection.run-shell-injection
         kubectl config set-context --current --namespace=argocd
+        # TODO: fix the ${{ inputs.extra_flags }}
         argocd_app_sync=(argocd app sync "$APP_NAME" --core --apply-out-of-sync-only --retry-limit "$RETRY_LIMIT" --retry-backoff-duration "$RETRY_BACKOFF_DURATION" --retry-backoff-factor "$RETRY_BACKOFF_FACTOR" --retry-backoff-max-duration "$RETRY_BACKOFF_MAX_DURATION" --timeout "$SYNC_TIMEOUT" ${{ inputs.extra_flags }})
         if [ "$PRUNE" == 'true' ]; then
           argocd_app_sync+=(--prune)

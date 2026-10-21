@@ -62,7 +62,8 @@ runs:
         DOCKER_REGISTRY_REPOSITORY: ${{ inputs.docker_registry_repository }}
 
     - name: Install Cosign
-      uses: sigstore/cosign-installer@v3.5.0
+      # This is voluntary, https://github.com/sigstore/cosign/pull/4458
+      uses: sigstore/cosign-installer@v3.5.0 # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
 
     # Convert / in branch name to -
     - name: Sanitze branch name
