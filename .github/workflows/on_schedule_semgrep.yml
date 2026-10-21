@@ -4,7 +4,6 @@ on:
   schedule:
     # “At 09:12”
     - cron: '12 9 * * *'
-      timezone: "Europe/Paris"
   workflow_dispatch:
 
 jobs:
