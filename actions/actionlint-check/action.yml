@@ -5,10 +5,10 @@ inputs:
     description: "actionlint version"
     default: "0.4.0"
     required: false
-  actionlint-args:
-    description: "Arguments for actionlint"
+  ignore-unpinned-sha:
+    description: "Ignore the rule that triggers when actions or workflows are called but not pinned to a specific SHA. Useful if using Actions lockfiles"
     required: false
-    default: ""
+    default: "false"
 
 runs:
   using: "composite"
@@ -17,8 +17,13 @@ runs:
       run: |
         curl -sSL -o actionlint.tar.gz "https://github.com/pass-culture/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
         tar -zxvf actionlint.tar.gz && rm actionlint.tar.gz
-        ./actionlint ./.github/workflows/*.yml "${ACTIONLINT_ARGS}"
+        if [ "$IGNORE_UNPINNED_SHA" == "true" ]; then
+          ./actionlint -ignore 'invalid format because ref is not a commit sha' ./.github/workflows/*.yml
+        else
+          ./actionlint ./.github/workflows/*.yml
+        fi
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
         ACTIONLINT_ARGS: ${{ inputs.actionlint-args }}
+        IGNORE_UNPINNED_SHA: ${{ inputs.ignore-pinned-sha }}
