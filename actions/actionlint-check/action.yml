@@ -5,6 +5,11 @@ inputs:
     description: "actionlint version"
     default: "0.4.0"
     required: false
+  actionlint-args:
+    description: "Arguments for actionlint"
+    required: false
+    default: ""
+
 runs:
   using: "composite"
   steps:
@@ -12,7 +17,8 @@ runs:
       run: |
         curl -sSL -o actionlint.tar.gz "https://github.com/pass-culture/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
         tar -zxvf actionlint.tar.gz && rm actionlint.tar.gz
-        ./actionlint ./.github/workflows/*.yml
+        ./actionlint ./.github/workflows/*.yml "${ACTIONLINT_ARGS}"
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
+        ACTIONLINT_ARGS: ${{ inputs.actionlint-args }}
