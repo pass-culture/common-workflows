@@ -26,4 +26,4 @@ runs:
       env:
         VERSION: ${{ inputs.version }}
         ACTIONLINT_ARGS: ${{ inputs.actionlint-args }}
-        IGNORE_UNPINNED_SHA: ${{ inputs.ignore-pinned-sha }}
+        IGNORE_UNPINNED_SHA: ${{ inputs.ignore-unpinned-sha }}
